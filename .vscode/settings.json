@@ -1,5 +1,10 @@
 {
     "cSpell.words": [
-        "Optin"
+        "htmlcov",
+        "mypy",
+        "Optin",
+        "pycache",
+        "pytest",
+        "venv"
     ]
 }

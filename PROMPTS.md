@@ -8,3 +8,7 @@ Read all files inside @applications/AI-First Developer - Awesome Motive/take-hom
 I'm going to develop this assignment project using Claude Code. So the fist step is to write SPEC.md well. Please specify all steps well in SPEC.md in order to complete a high-quality Python CLI project.
 
 The file path is G:\anton\02_projects\smart-insights-agent.
+
+## 2
+
+Add .gitignore with relevant items for this project.
