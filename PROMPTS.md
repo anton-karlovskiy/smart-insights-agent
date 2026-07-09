@@ -1,4 +1,4 @@
-## 1
+## 1.
 
 Read all files inside @applications/AI-First Developer - Awesome Motive/take-home-assignment first.
 - @applications/AI-First Developer - Awesome Motive/take-home-assignment/assignment-brief.md
@@ -9,6 +9,10 @@ I'm going to develop this assignment project using Claude Code. So the fist step
 
 The file path is G:\anton\02_projects\smart-insights-agent.
 
-## 2
+## 2.
 
 Add .gitignore with relevant items for this project.
+
+## 3.
+
+The SPEC.md is a technical specification document which I can use as a foundation to then build this project. So with that in mind, review it again and improve if necessary.
