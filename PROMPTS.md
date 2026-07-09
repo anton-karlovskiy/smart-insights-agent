@@ -16,3 +16,7 @@ Add .gitignore with relevant items for this project.
 ## 3.
 
 The SPEC.md is a technical specification document which I can use as a foundation to then build this project. So with that in mind, review it again and improve if necessary.
+
+## 4.
+
+I'm using OpenAI GPT model not Claude. Can you update @SPEC.md accordingly?

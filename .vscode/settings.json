@@ -1,10 +1,16 @@
 {
     "cSpell.words": [
+        "Ecom",
+        "Ecommerce",
         "htmlcov",
         "mypy",
         "Optin",
+        "optinmonster",
         "pycache",
+        "pydantic",
+        "pyproject",
         "pytest",
+        "stdlib",
         "venv"
     ]
 }
