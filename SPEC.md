@@ -8,12 +8,14 @@ Target effort: 3 to 4 hours. Prefer the simple, testable version of everything. 
 
 ## 1. Design principles
 
-These come straight from the pitch and the brief. Every implementation decision defers to them.
-
-- **The pipeline computes, the LLM words.** All numbers, benchmarks, anomaly flags, and candidate actions are produced by deterministic Python. The LLM selects and phrases the single best action from grounded facts it is handed. It never invents a statistic.
-- **Trust nothing from the model.** Every LLM response is schema-validated, checked for grounding, and retried or flagged on failure. Raw text is never passed downstream.
-- **Broken data gets a "fix your setup" answer, not marketing advice.** A user with a dead tracking script should be told to fix the install, not to try exit intent.
-- **One action per user.** Not a list of tips. One diagnosis, one recommendation.
+- **Deterministic first, LLM second.** Exact, testable code does everything it can do correctly. The LLM is spent only on what code cannot do: turning human prose into structured fields.
+- **The LLM reads and writes; Python computes and decides.** Text in, schema out at the top of the pipeline; facts in, one recommendation out at the bottom. Every number, rule, and verdict in between belongs to deterministic code. No statistic is ever authored by a model.
+- **Every model output is untrusted input.** Schema-constrained on the way out, validated on the way in, retried or flagged on failure. Raw model text never crosses a stage boundary.
+- **Free text is data, never instructions.** Customer-written notes are quoted to the model, never obeyed by it.
+- **Model judgment is recorded, never silently applied.** Whatever the LLM overrides keeps its original value alongside the reason, so every change is auditable.
+- **Preprocessing is an artifact, not a step.** Extraction is non-deterministic; benchmarks must not be. It runs once, its output is committed, and everything downstream reads that.
+- **Broken data gets a "fix your setup" answer, not marketing advice.** A dead tracking script means fix the install, not try exit intent.
+- **One action per user.** One diagnosis, one recommendation. Not a list of tips.
 
 ## 2. Dataset traps (must all be handled)
 
@@ -272,4 +274,4 @@ Each milestone should leave the repo runnable and end with a commit. Rough time 
 
 ## 10. Out of scope
 
-Real lift measurement, persistence, auth, concurrency, batching API, web UI, and multi-metric support. The pitch's "start narrow" applies to the take-home too: one dataset, one metric, one decision per user, done well.
+Real lift measurement, persistence, auth, concurrency, batching API, web UI, and multi-metric support. Start narrow: one dataset, one metric, one decision per user, done well.

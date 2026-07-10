@@ -29,3 +29,20 @@ Please review all "current_setup_notes" contents. And give me some insight into 
 their conversion rates.
 
 Write down what you've described into @"applications/AI-First Developer - Awesome Motive/temp\" as an md file.
+
+## 6.
+
+You can reference the assignment at G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\take-home-assignment\assignment-brief.md .
+
+For data preprocessing namely Cleaning & Normalization, I'm also going to use LLM not just deterministic Python.
+
+As you can see the data at G:\anton\02_projects\smart-insights-agent\data\optinmonster_users.json
+- "reported_industry" is messy and expressed with different wording for the same segment. I think we should harmonize them first by adding a separate field named "canonical_industry_segment".
+- "current_setup_notes" is is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site. It is not structured data. It reads like something a
+support rep or onboarding specialist typed into a CRM: inconsistent casing, some entries in full sentences, some in lowercase fragments, no schema. It also includes some parts that are not related to
+conversion setup, which should be flagged/filtered in the process of data preprocessing. I'll specify how to handle them down the line.
+
+Review ## 1. Design principles at @SPEC.md and update accordingly.
+
+For your reference, you can check G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\temp\llm-for-data-preprocessing.md to see how LLM is used for modern data
+science/analysis.
