@@ -39,26 +39,27 @@ data/optinmonster_users.json
 [1. load & validate]      pydantic models, fail loudly on malformed input
         |
         v
-[2. normalize]            canonical industry segments, cross-check reported industry vs notes
+[2. preprocess (LLM)]     per row, one structured-output call ->
+        |                 canonical_industry_segment, setup_passages
+        |                 (split, polish, drop off-topic), edge_case_anomaly
+        v
+[3. audit (Python)]       impossible_metric_anomaly from opt_in_rate range
         |
         v
-[3. audit]                anomaly rules -> quarantine flags + data-quality notes
-        |
+[4. benchmark (Python)]   per-segment opt-in-rate stats + top_performer_ids,
+        |                 over clean (non-anomalous) rows only
         v
-[4. enrich & benchmark]   extract setup features from notes, compute per-segment
-        |                 benchmarks and gaps vs top performers (valid rows only)
+[5. insight (LLM)]        one structured-output call per clean row ->
+        |                 {recommendation, confidence}; anomalous rows are
+        |                 skipped and keep insight = null
         v
-[5. insight generator]    one OpenAI call per website, structured output,
-        |                 facts-only prompt (quarantined websites skip the benchmark
-        |                 framing and get fix-type context instead)
-        v
-[6. validate]             schema + grounding + action-type rules, retry once,
+[6. validate (Python)]    schema + grounding + sanity, retry once,
         |                 mark needs_review on repeated failure
         v
 [7. report]               out/insights.json + readable console summary
 ```
 
-Stages 1 to 4 and 6 to 7 are pure Python, fully unit-testable, no network. Stage 5 is the only API-touching code and is isolated behind one module with a mockable client.
+Stage 2's LLM output is committed as a preprocessing artifact, so stages 3, 4, 6, 7 and the whole test suite run offline against it. Only stages 2 and 5 touch the API, each isolated behind a module with a mockable client.
 
 ## 4. Pipeline detail
 
@@ -66,16 +67,22 @@ Stages 1 to 4 and 6 to 7 are pure Python, fully unit-testable, no network. Stage
 
 Pydantic models for:
 
-- `RawWebsite`: the input row as-is.
-- `CleanWebsite`: adds `segment`, `flags: list[Flag]`, `metric_valid: bool`, `features: SetupFeatures`, and keeps original fields for traceability.
-- `SetupFeatures`: booleans/values extracted from notes (section 4.4).
-- `SegmentBenchmark`: segment name, member count, median and mean opt-in rate, top-performer feature summary.
-- `Insight`: the LLM output schema (section 4.5).
-- `Flag`: enum + optional detail, e.g. `impossible_metric`, `broken_install`, `dead_webhook`, `not_a_capture_campaign`, `industry_reclassified`, `duplicate_setup`, `thin_segment`.
+- `RawWebsite`: the input row as-is (`id`, `website_url`, `reported_industry`, `opt_in_rate`, `current_setup_notes`).
+- `CleanWebsite`: the raw row plus the fields the pipeline adds, keeping every original field for traceability —
+  - `canonical_industry_segment: str` — normalization output (stage 2).
+  - `setup_passages: list[str]` — `current_setup_notes` split into conversion-setup passages, each lightly polished (typos/grammar only, meaning preserved), off-topic passages dropped; raw notes retained untouched (stage 2).
+  - `impossible_metric_anomaly: bool` — stage 3.
+  - `edge_case_anomaly: str | None` — one-line explanation when the row's fields disagree, else `None` (stage 2).
+  - `benchmark: Benchmark | None` — stage 4.
+  - `insight: Insight | None` — stage 5.
+- `Benchmark`: `website_count`, `mean_opt_in_rate`, `median_opt_in_rate`, `min_opt_in_rate`, `max_opt_in_rate`, `canonical_industry_segment`, `top_performer_ids: list[int]`.
+- `Insight`: the LLM output schema — `recommendation: str`, `confidence: Literal["high", "medium", "low"]` (section 4.5).
+
+A row is **anomalous** when `impossible_metric_anomaly` is true or `edge_case_anomaly` is not `None`. Anomalous rows are excluded from all benchmark math and get no insight, so `benchmark` and `insight` are both `None` for them.
 
 ### 4.2 Industry normalization (`normalize.py`)
 
-Two-step, deterministic:
+Two steps — a deterministic lookup, then an LLM cross-check:
 
 1. **Segment mapping.** Case-insensitive lookup table from every variant in the dataset to a canonical segment. Canonical set (keep it to about six so segments are not too thin across 30 rows):
    - `ecommerce_retail` (eCommerce, ecommerce, E-comm, E-commerce, Ecommerce, Retail, Retail / Ecom)
@@ -86,130 +93,116 @@ Two-step, deterministic:
    - `education` (Education)
    Unknown values map to `other` with a flag rather than crashing.
 
-   Expected sizes with this mapping, after ID 3 is reclassified and invalid metrics are excluded: ecommerce_retail 10 valid, saas_b2b 5, media_content 5, local_services 3, professional_services 2, education 1. So the thin-segment fallback in 4.4 is not hypothetical: professional_services and education will use it. These counts double as a sanity check during the build.
-2. **Notes cross-check.** A small keyword scorer over `current_setup_notes` (e.g. "selling", "checkout", "cart", "coupon", "discount code" imply ecommerce). If the notes strongly imply a different segment than `reported_industry` (as in ID 3), reclassify and add `industry_reclassified` with the old and new values. Keep the keyword lists short and the threshold conservative: this must fix ID 3 without churning correct rows.
+   Clean-row counts per segment (all 30 rows get a segment, but the five anomalous rows — 3, 4, 8, 12, 20 — are excluded from benchmark membership): ecommerce_retail 9, saas_b2b 5, media_content 5, local_services 3, professional_services 2, education 1. These counts double as a sanity check during the build.
+2. **LLM cross-check.** The stage-2 preprocessing call reads `reported_industry` and the row's `setup_passages` and returns the final `canonical_industry_segment`, using the lookup result as a strong prior. When the passages plainly describe a different business than the label (ID 3: labeled SaaS, notes describe selling baking goods), it overrides the mapping and records the disagreement in `edge_case_anomaly`. The prompt is conservative — override only on a clear contradiction, so correct rows are not churned.
 
 Exact segment membership is an implementation call. The tests pin the important cases (ID 3 ends up in ecommerce, all the ecommerce spelling variants land together).
 
 ### 4.3 Anomaly audit (`audit.py`)
 
-Ordered rules, each producing a flag:
+Two independent anomaly signals gate a row out of benchmarking and insight. A row is **anomalous** when either fires, and per the §4.1 invariant its `benchmark` and `insight` are both `None`.
 
-1. `opt_in_rate < 0` or `> 100` → `impossible_metric`, `metric_valid = False`.
-2. Notes mention dead webhook (ID 20) → also `dead_webhook`.
-3. `opt_in_rate == 0` and notes indicate zero impressions despite traffic → `broken_install`, `metric_valid = False`.
-4. Notes indicate no email input field → `not_a_capture_campaign`, `metric_valid = False` (excluded from benchmarks, but not quarantined for recommendation purposes).
-5. Notes declare a duplicate of another ID → `duplicate_setup` with the referenced ID.
+1. **`impossible_metric_anomaly`** (this stage, pure Python): `opt_in_rate < 0` or `> 100`. A plain range check, nothing to infer. Catches ID 8 (105.0) and ID 20 (-0.5).
+2. **`edge_case_anomaly`** (produced upstream in stage 2, LLM): a one-line explanation set when `reported_industry` / `opt_in_rate` / `setup_passages` disagree in a way no rule can catch — a rate that measures nothing because there is no capture field (ID 12), an install recording zero impressions against real traffic (ID 4), a form dropping leads into a dead webhook (ID 20), a label that contradicts the notes (ID 3). `None` when the row is internally consistent.
 
-"Quarantined" = has `impossible_metric` or `broken_install` (or `dead_webhook`). The audit assigns each quarantined website its required action category from the trap table (ID 8 → `verify_tracking`, ID 20 → `fix_webhook`, ID 4 → `fix_installation`); the LLM only words the explanation.
+The two can co-occur (ID 20 is both). Nothing here assigns a recommendation: an anomalous row carries only its flag and, where set, the explanation — and that explanation is the "fix your setup" message for a broken row.
 
-### 4.4 Feature extraction and benchmarks (`benchmark.py`)
+### 4.4 Benchmarks (`benchmark.py`)
 
-Extract a small, keyword-driven feature set from notes. Enough for meaningful gap analysis, no NLP heroics:
+Deterministic, computed over clean (non-anomalous) rows only. Per `canonical_industry_segment`:
 
-- `exit_intent` (mentions exit intent)
-- `click_trigger` (2-step / MonsterLink / choice campaign)
-- `lead_magnet` (discount, coupon, ebook, PDF, guide, free class/trial, spin-to-win...) and its absence
-- `high_friction_form` (3+ required fields, or asks for phone/company/budget etc.)
-- `instant_fullscreen` (welcome mat / takeover on load, no delay)
-- `page_targeting` (specific pages: cart, checkout, schedule, articles) vs sitewide
+- `website_count`, `mean_opt_in_rate`, `median_opt_in_rate`, `min_opt_in_rate`, `max_opt_in_rate` — median leads because n is tiny and skewed; all plain arithmetic on the segment's opt-in rates.
+- `top_performer_ids` — the highest-rate members, as pointers the report can surface. (Setup features were dropped, so the benchmark no longer models *what* top performers do differently; the recommendation grounds "what to change" in the row's own `setup_passages` and where its rate sits in the distribution.)
 
-Benchmarks, computed over `metric_valid` rows only:
-
-- Per segment: member count, median opt-in rate (median, since n is tiny and skewed), min/max, and feature adoption rate among the segment's top half.
-- If a segment has fewer than 3 valid members, fall back to the global median and flag the website's facts with `thin_segment` so the LLM frames the comparison honestly ("across all sites in this dataset" instead of "sites like yours").
-
-Per-website output of this stage: a `facts` dict. This dict is exactly what the LLM sees, nothing else. It includes the raw `setup_notes` verbatim: the recommendation should reference the website's actual setup ("your 10% discount", "your welcome mat"), and the grounding check in 4.6 treats the serialized facts as the universe of permitted numbers, so the notes must be inside it. Example for ID 1 (benchmark numbers illustrative):
+The per-row `facts` handed to the insight LLM (§4.5), for clean rows only — exactly what the model sees:
 
 ```json
 {
   "id": 1,
   "website_url": "https://www.luxe-threads.co",
-  "segment": "ecommerce_retail",
+  "canonical_industry_segment": "ecommerce_retail",
   "opt_in_rate": 2.4,
-  "metric_valid": true,
-  "flags": [],
-  "setup_notes": "Runs a sitewide overlay popup on 5s delay, no exit intent, template #4. Offers 10% off.",
-  "features": {"exit_intent": false, "click_trigger": false, "lead_magnet": true,
-               "high_friction_form": false, "instant_fullscreen": false, "page_targeting": false},
-  "benchmark": {"scope": "segment", "member_count": 10, "median_opt_in_rate": 2.8,
-                "top_performer_features": ["exit_intent", "page_targeting"]},
-  "gaps": ["exit_intent", "page_targeting"],
-  "required_action_category": null
+  "setup_passages": [
+    "Runs a sitewide overlay popup on a 5s delay, no exit intent, template #4.",
+    "Offers 10% off."
+  ],
+  "benchmark": {
+    "website_count": 9, "mean_opt_in_rate": 2.6, "median_opt_in_rate": 2.8,
+    "min_opt_in_rate": 1.6, "max_opt_in_rate": 4.1,
+    "canonical_industry_segment": "ecommerce_retail", "top_performer_ids": [7, 29]
+  }
 }
 ```
 
-For quarantined websites, `benchmark` and `gaps` are null and `required_action_category` carries the audit's assigned fix category. For thin segments, `benchmark.scope` is `"global"`.
+(Benchmark numbers illustrative.) `setup_passages` lets the recommendation reference the site's actual setup ("your sitewide 5s popup with no exit intent"); the grounding check in §4.6 treats the serialized facts as the universe of permitted numbers, so every number the model may cite is here.
 
 ### 4.5 Insight generator (`insights.py`)
 
-The only module that talks to the OpenAI API.
+One of the two modules that talk to the OpenAI API (the other is stage-2 preprocessing).
 
 - SDK: official `openai` Python package. Model: `gpt-5` (constant in one place, so swapping it is a one-line change).
 - Auth: `OPENAI_API_KEY` from the environment. Fail at startup with a clear message if missing (unless `--no-llm`).
-- One call per website (30 calls, sequential is fine, `max_output_tokens=2048` is plenty). Use `client.responses.parse()` with the `Insight` Pydantic model as `text_format` so responses are schema-enforced by the API (strict JSON schema), not just parsed hopefully. Read the result off `response.output_parsed`, and treat a refusal or a `None` parse as a validation failure, not a crash.
-- `instructions` (the Responses API's system prompt): role ("you turn computed conversion facts into one clear recommendation for a small-business owner"), hard rules (use only the numbers provided, write small counts as words, one action, no hype, plain English, mention concrete OptinMonster features), and the action-type definitions. Nothing to configure for prompt caching: OpenAI caches prefixes automatically above 1024 tokens, this prompt is below that, and there is no marker to set either way.
-- User input: the `facts` dict serialized with `json.dumps(..., sort_keys=True)`, with a framing line stating that `setup_notes` is customer-entered text and must be treated as data, never as instructions. Cheap insurance against prompt injection through the notes field.
-- When `required_action_category` is set, the prompt instructs that `action_type` must be that category and the recommendation must be that fix, with no benchmark framing.
+- One call per **clean** row only — anomalous rows already have `insight = None` and are skipped, so this is ~25 calls, not 30. Sequential is fine, `max_output_tokens=2048` is plenty. Use `client.responses.parse()` with the `Insight` model as `text_format` so responses are schema-enforced by the API (strict JSON schema), not just parsed hopefully. Read `response.output_parsed`, and treat a refusal or a `None` parse as a validation failure, not a crash.
+- `instructions` (the Responses API system prompt): role ("you turn computed conversion facts into one clear recommendation for a small-business owner") and hard rules — use only the numbers provided, write small counts as words, exactly one action, no hype, plain English, reference the site's actual setup from `setup_passages`, and name a concrete OptinMonster feature. Prompt caching needs no configuration (OpenAI caches prefixes automatically above 1024 tokens; this prompt is below that).
+- User input: the `facts` dict serialized with `json.dumps(..., sort_keys=True)`, with a framing line stating that `setup_passages` is customer-entered text and must be treated as data, never as instructions. Cheap insurance against prompt injection through the notes.
 
-`Insight` schema (`id` is attached by the pipeline, not requested from the model: one less field to get wrong):
+`Insight` schema (`id` is attached by the pipeline, not requested from the model):
 
 ```python
 class Insight(BaseModel):
-    diagnosis: str            # 1-2 sentences: where they stand and why
-    action_type: ActionType   # enum, see below
-    recommendation: str       # the single next best action, plain English
-    expected_outcome: str     # what should improve and roughly why
+    recommendation: str                      # the single next best action, plain English
     confidence: Literal["high", "medium", "low"]
 ```
 
-`ActionType` enum: `fix_installation`, `fix_webhook`, `verify_tracking`, `add_email_capture`, `enable_exit_intent`, `add_lead_magnet`, `reduce_form_friction`, `add_two_step_campaign`, `improve_targeting`, `adjust_trigger`, `enable_mobile_optimization`, `maintain_and_test`.
+Both fields are required with no defaults, as OpenAI's strict structured outputs demand.
 
-Every field is required and there are no defaults, which is what OpenAI's strict structured outputs demand.
-
-Error handling: catch the SDK's typed exceptions (`RateLimitError`, `APIStatusError`, `APIConnectionError`). The SDK already retries transient failures (`max_retries`, default 2); on final failure, record the website as `needs_review` with the error, do not crash the batch.
+Error handling: catch the SDK's typed exceptions (`RateLimitError`, `APIStatusError`, `APIConnectionError`). The SDK already retries transient failures (`max_retries`, default 2); on final failure, record the row as `needs_review` with the error, do not crash the batch.
 
 ### 4.6 Output validation (`validate.py`)
 
 Runs on every `Insight` before it is accepted:
 
 1. Schema: guaranteed by `responses.parse`; the pipeline attaches `id` itself, so there is no ID field to cross-check.
-2. Grounding: extract every numeric token (regex over integers and decimals) from `diagnosis` / `recommendation` / `expected_outcome`. Each must appear in that website's serialized `facts`, compared after normalization (strip percent signs and trailing zeros). Whole numbers 0 through 10 are allowed unconditionally so ordinary prose ("2-step", "one field") does not trip the check; an invented benchmark or a leaked 105 still does. This is the check that stops "congratulations on your 105% conversion rate".
-3. Category rules: quarantined websites must get their required `action_type`; non-quarantined websites must not get `fix_installation`, `fix_webhook`, or `verify_tracking`.
-4. Sanity: `recommendation` is non-empty and under ~600 chars, exactly one action (no "also consider..." lists; a simple heuristic like rejecting "additionally"/"you should also" is fine).
+2. Grounding: extract every numeric token (regex over integers and decimals) from `recommendation`. Each must appear in that row's serialized `facts`, compared after normalization (strip percent signs and trailing zeros). Whole numbers 0 through 10 are allowed unconditionally so ordinary prose ("2-step", "one field") does not trip the check; an invented benchmark or a leaked 105 still does. This is the check that stops "congratulations on your 105% conversion rate".
+3. Sanity: `recommendation` is non-empty and under ~600 chars, and is exactly one action (no "also consider..." lists; rejecting "additionally" / "you should also" is a fine heuristic).
 
-On failure: retry the API call once with the validation error appended to the user message ("your previous answer failed validation because..."). On second failure: keep the row, set `status: "needs_review"` with the reason, exclude from the "clean" success count. Never silently drop a website.
+(The old action-type category rules are gone with the `action_type` field; a broken row now carries no insight at all, so there is nothing to police there.)
+
+On failure: retry the API call once with the validation error appended to the user message ("your previous answer failed validation because..."). On second failure: keep the row, set `status: "needs_review"` with the reason, exclude from the "clean" success count. Never silently drop a row.
 
 ### 4.7 Report (`report.py` + `out/insights.json`)
 
-- `out/insights.json`: array of `{id, website_url, segment, opt_in_rate, flags, benchmark: {...}, insight: {...}, status}` for all 30 websites. Status is `ok`, `needs_review`, or `llm_skipped` (in `--no-llm` mode).
-- Console output: a compact table (id, site, segment, rate vs segment median, action type) plus a summary line (n cleaned, n reclassified, n quarantined, n needs_review). Plain `print` formatting or `tabulate` is fine, no rich TUI needed.
+- `out/insights.json`: array of `{id, website_url, canonical_industry_segment, opt_in_rate, impossible_metric_anomaly, edge_case_anomaly, benchmark, insight, status}` for all 30 rows. Status is `ok`, `needs_review`, or `llm_skipped` (in `--no-llm` mode).
+- Console output: a compact table (id, site, segment, rate vs segment median, and either the recommendation or the anomaly note) plus a summary line (n clean, n anomalous, n needs_review). Plain `print` or `tabulate` is fine, no rich TUI needed.
 
 ## 5. CLI
 
 Package `smart_insights`, entry point via `python -m smart_insights` (argparse subcommands, stdlib only):
 
 ```
-python -m smart_insights clean    [--input data/optinmonster_users.json]
-    # runs stages 1-4, prints cleaned table with segments, flags, benchmarks; no API calls
+python -m smart_insights preprocess [--input data/optinmonster_users.json] [--out data/enriched.json]
+    # stage 2 (the LLM pass): writes the committed preprocessing artifact. The one command that must hit the API to regenerate.
 
-python -m smart_insights run      [--input ...] [--out out/insights.json] [--id N] [--no-llm]
-    # full pipeline; --id runs one website (cheap debugging); --no-llm stops after stage 4
+python -m smart_insights clean      [--enriched data/enriched.json]
+    # stages 3-4 over the committed artifact: prints segments, anomaly flags, benchmark table. No API calls.
 
-python -m smart_insights evaluate [--insights out/insights.json]
-    # re-runs all validate.py checks against a saved output file and prints pass/fail per website
+python -m smart_insights run        [--enriched ...] [--out out/insights.json] [--id N] [--no-llm]
+    # stages 3-5: benchmark + insight; --id runs one row (cheap debugging); --no-llm stops after stage 4
+
+python -m smart_insights evaluate   [--insights out/insights.json]
+    # re-runs all validate.py checks against a saved output file and prints pass/fail per row
 ```
 
-`evaluate` is the brief's "basic script to ensure the LLM's recommendations are structured and safe": it can be pointed at any output file (including the committed `examples/sample_insights.json`) and re-verifies it without calling the API. It exits nonzero if any website fails, so it works as a gate in a script.
+`evaluate` is the brief's "basic script to ensure the LLM's recommendations are structured and safe": point it at any output file (including the committed `examples/sample_insights.json`) and it re-verifies without calling the API. It exits nonzero if any row fails, so it works as a gate in a script.
 
 ## 6. Tests
 
-`pytest`, all offline, LLM client mocked. Priorities in order:
+`pytest`, all offline — LLM clients mocked, deterministic stages run against the committed `data/enriched.json`. Priorities in order:
 
-1. `normalize`: every industry variant in the dataset maps to the right segment; ID 3 gets reclassified; a correct segment does not get churned.
-2. `audit`: IDs 8, 20, 4 quarantined with the right flags; ID 12 flagged `not_a_capture_campaign`; ID 27 flagged duplicate; healthy rows get no flags.
-3. `benchmark`: quarantined rates excluded from medians; thin segments fall back to global; feature extraction spot-checks (ID 1 has no exit intent, ID 7 has it, ID 16 is high friction).
-4. `validate`: grounding check rejects an insight containing an invented number; category rules reject marketing advice for a quarantined website; the one-action heuristic works.
+1. `normalize`: every industry variant in the dataset maps to the right segment via the lookup; the ID 3 override lands in ecommerce; a correct segment is not churned.
+2. `audit`: `impossible_metric_anomaly` is true for IDs 8 and 20, false for healthy rows (pure Python, no mock needed).
+3. `benchmark`: anomalous rows are excluded from the stats; a segment's median/min/max/mean are correct on a fixture.
+4. `validate`: grounding rejects an insight containing an invented number; the one-action heuristic works.
 5. `insights`: with a mocked client, the retry-on-validation-failure path and the `needs_review` path.
 
 Not required: integration tests that hit the real API, coverage targets, CI config.
@@ -223,7 +216,8 @@ smart-insights-agent/
 ├── PROMPTS.md
 ├── pyproject.toml              # deps: openai, pydantic, pytest (dev)
 ├── data/
-│   └── optinmonster_users.json
+│   ├── optinmonster_users.json
+│   └── enriched.json           # committed stage-2 artifact (segments, passages, anomalies)
 ├── examples/
 │   └── sample_insights.json    # committed real output, see below
 ├── out/                        # gitignored
@@ -231,7 +225,8 @@ smart-insights-agent/
 │   ├── __init__.py
 │   ├── __main__.py             # argparse CLI
 │   ├── models.py
-│   ├── normalize.py
+│   ├── normalize.py            # deterministic segment lookup
+│   ├── preprocess.py           # stage-2 LLM pass (segment, setup_passages, edge_case_anomaly)
 │   ├── audit.py
 │   ├── benchmark.py
 │   ├── insights.py
@@ -239,32 +234,33 @@ smart-insights-agent/
 │   └── report.py
 └── tests/
     ├── test_normalize.py
+    ├── test_preprocess.py
     ├── test_audit.py
     ├── test_benchmark.py
     ├── test_validate.py
     └── test_insights.py
 ```
 
-Python 3.11+. Keep dependencies to `openai` and `pydantic` (pytest for dev). `examples/sample_insights.json` is a real full-run output committed on purpose: a reviewer without an API key can read actual results and run `evaluate` against them. `out/` stays gitignored so working runs never pollute the diff.
+Python 3.11+. Keep dependencies to `openai` and `pydantic` (pytest for dev). Two artifacts are committed on purpose so a reviewer without an API key can run everything offline: `data/enriched.json` (the stage-2 preprocessing output, which `clean`/`run`/tests read) and `examples/sample_insights.json` (a real full-run output to read and run `evaluate` against). `out/` stays gitignored so working runs never pollute the diff.
 
 ## 8. Build order
 
 Each milestone should leave the repo runnable and end with a commit. Rough time budget in parentheses (total ~3.5h).
 
 1. **Scaffold** (15 min). `pyproject.toml`, package skeleton, dataset in `data/`, empty CLI that parses subcommands. `.gitignore` (out/, .env, __pycache__).
-2. **Load + normalize** (40 min). `models.py`, `normalize.py`, tests. `clean` command prints segments.
-3. **Audit + benchmarks** (45 min). `audit.py`, `benchmark.py`, tests. `clean` now shows flags and benchmark table. All seven dataset traps visibly handled at this point, before any LLM work.
-4. **Insight generator** (40 min). `insights.py` with real API calls, `run` command, `--id` and `--no-llm`. Verify manually on 2-3 websites (one healthy, one quarantined) before running all 30.
-5. **Validation + evaluate** (45 min). `validate.py`, retry loop, `evaluate` command, tests. Run the full 30 and commit the result as `examples/sample_insights.json`.
+2. **Load + normalize** (35 min). `models.py`, `normalize.py` (deterministic lookup), tests.
+3. **Preprocess (LLM)** (45 min). `preprocess.py`: the stage-2 call producing `canonical_industry_segment`, `setup_passages`, `edge_case_anomaly`. Run once, commit `data/enriched.json`; verify the five anomalous rows (3, 4, 8, 12, 20) look right.
+4. **Audit + benchmarks** (40 min). `audit.py` (`impossible_metric_anomaly`), `benchmark.py`, tests. `clean` now shows anomaly flags and the benchmark table, all offline against the artifact.
+5. **Insight + validation** (45 min). `insights.py`, `validate.py`, retry loop, `run` and `evaluate`. Run the full clean set and commit the result as `examples/sample_insights.json`.
 6. **Polish** (45 min). Console report, README (run instructions, architecture, trap-handling table, video outline), final pass over PROMPTS.md.
 
 ## 9. Acceptance checklist
 
-- [ ] `python -m smart_insights run` completes on all 30 websites with a valid `out/insights.json`.
-- [ ] IDs 8, 20, 4 receive fix-type recommendations; none of their impossible rates appear in any benchmark.
-- [ ] ID 3 is benchmarked against ecommerce peers, and the output records the reclassification.
-- [ ] ID 12 is told to add an email capture, not congratulated or scolded on 0.02%.
-- [ ] No recommendation contains a number that is not in that website's facts (verified by `evaluate`).
+- [ ] `python -m smart_insights run` completes on all 30 rows with a valid `out/insights.json`.
+- [ ] IDs 8, 20, 4, 12, 3 are flagged anomalous (`impossible_metric_anomaly` or `edge_case_anomaly`), excluded from every benchmark, and carry `insight: null`.
+- [ ] ID 3's `canonical_industry_segment` is `ecommerce_retail` and its `edge_case_anomaly` records the label-vs-notes contradiction.
+- [ ] ID 12's `edge_case_anomaly` explains the rate measures the wrong thing (no capture field); it is not benchmarked or scored on 0.02%.
+- [ ] No recommendation contains a number that is not in that row's facts (verified by `evaluate`).
 - [ ] `python -m smart_insights evaluate --insights examples/sample_insights.json` passes and exits 0.
 - [ ] `pytest` passes offline with no API key set.
 - [ ] README explains setup in under a minute of reading; PROMPTS.md documents the AI collaboration honestly, including at least one correction of bad AI output.

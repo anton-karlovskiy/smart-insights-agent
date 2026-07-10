@@ -49,7 +49,7 @@ Now the design principles look too specific. It should be architecture level mai
 
 ## 8.
 
-current_setup_notes is a free-text. So I'm going to use LLM to split it into a list of meaningful passages. And add that list as a separate field again. You can help me name that field.
+"current_setup_notes" is a free-text. So I'm going to use LLM to split it into a list of meaningful passages. And add that list as a separate field again. You can help me name that field.
 And when splitting, LLM can also polish passages without inventing new content. The meaning should stay the same but typos and grammar mistakes can be fixed by LLM.
 LLM needs to use structured output in this case too.
 
@@ -83,3 +83,49 @@ In this @SPEC.md I want to harmonize terms for consistency.
 For example, "industry label", "label", "segment" are used interchangeably but let's use "segment", "industry segment", "canonical industry segment" consistently.
 "user", "account" -> "website"
 Not use "user_id" but just "id"
+
+## 12.
+
+I'm going to describe about the irrelevant-notes rules that gate the §3–§8 propagation.
+
+"current_setup_notes" is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site.
+So the field exists to capture the current state of a conversion setup in enough detail that someone can diagnose why the "opt_in_rate" is what it is. Paired with "opt_in_rate",
+each row is a small case study: here is the configuration, here is the result.
+
+When splitting "current_setup_notes" into a list of meaningful passages, drop those that are irrelevant to conversion setup configuration.
+It's safe because we also preserve "current_setup_notes" field as it is when creating a separate field for a list of conversion setup configuration passages.
+
+## 13.
+
+For "4.1 model definition", we will add the following fields to each data row in the process of data preprocessing, benchmarking and insight generation.
+- "impossible_metric_anomaly": boolean
+- "edge_case_anomaly": string | None
+- "canonical_industry_segment": string
+- "benchmark": { "website_count": number; "mean_opt_in_rate": number; "median_opt_in_rate": number; "min_opt_in_rate": number; "max_opt_in_rate": number;
+"canonical_industry_segment": string; "top_performer_ids": list[number] } | None
+- "insight": { "recommendation": string; "confidence": Literal["high", "medium", "low"] } | None
+
+For "impossible_metric_anomaly" is true or "edge_case_anomaly" is not None, "benchmark" and "insight" must be None from a logical perspective.
+
+## 14.
+
+Five flags — places I made a call or the model shifts behavior
+
+1. setup_passages kept (as said up top). It's in the models and the facts dict. One-word fix if you meant to drop it.
+2. Anomalous rows now get zero recommendation. Your rule (insight = None) means IDs 8, 20, 4, 12, 3 receive no insight — I updated §9 accordingly. Concretely: ID 12 no longer gets an explicit "add email capture" (it's folded into its edge_case_anomaly text), reversing the old acceptance line. The brief wants "a recommendation for each user," so confirm you're OK that broken rows get a diagnosis-only treatment.
+3. ID 8 gets only a boolean. It has impossible_metric_anomaly: true but no edge_case_anomaly string (your §2 table leaves it empty), so it ends up with no human-readable message at all. Want impossible-metric rows to also carry a short explanation (e.g. "rate 105% is impossible — verify tracking"), or is the flag enough?
+4. New: a preprocess command + committed data/enriched.json + preprocess.py. I introduced these because once normalization is an LLM step, your own principle 6 ("preprocessing is an artifact... its output is committed") plus the "pytest offline, no API key" acceptance criterion require the stage-2 output to be committed. Side effect: clean now reads --enriched data/enriched.json instead of the raw input. This is the biggest thing I added rather than derived — tell me if you'd rather structure it differently.
+5. Thin-segment fallback has nowhere to live in your Benchmark schema (no scope field), so I signal it by setting the benchmark's canonical_industry_segment to all_segments. And top_performer_ids are just pointers — the top performers' setups aren't passed to the LLM, so "what to change" rests on the row's own setup_passages + rate gap. Both are workable but worth a glance.
+
+> The brief wants "a recommendation for each user," so confirm you're OK that broken rows get a diagnosis-only treatment.
+
+The brief just means that a recommendation should be generated for each website that has no anomaly. So broken rows, precisely speaking, rows that have anomaly shouldn't have to
+have any comment for now. Maybe later, we can address that too as an independent feature and now let's not make things complex and keep simplicity.
+
+> Want impossible-metric rows to also carry a short explanation (e.g. "rate 105% is impossible — verify tracking"), or is the flag enough?
+
+No need any explanation because "impossible_metric_anomaly: true" explains everything. Does not have to be verbose.
+
+> Thin-segment fallback has nowhere to live in your Benchmark schema (no scope field), so I signal it by setting the benchmark's canonical_industry_segment to all_segments.
+
+Entirely drop thin-segment fallback. It's an over-engineering feature. First, we should build this prototype with simplicity in mind as proof-of-concept or something.
