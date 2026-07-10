@@ -9,12 +9,12 @@ Target effort: 3 to 4 hours. Prefer the simple, testable version of everything. 
 ## 1. Design principles
 
 - **Deterministic first, LLM second.** Exact, testable code does everything it can do correctly. The LLM is spent only on what code cannot do: turning human prose into structured fields.
-- **The LLM reads and writes; Python computes and decides.** Text in, schema out at the top of the pipeline; facts in, one recommendation out at the bottom. Every number, rule, and verdict in between belongs to deterministic code. No statistic is ever authored by a model.
+- **The LLM reads and writes; Python computes and decides.** Text in, schema out at the top of the pipeline; facts in, one recommendation out at the bottom. Every number, rule, and verdict in between belongs to deterministic code. A model reshapes and rewords what it is given; it never authors substance — no invented statistic, and no meaning that was not in the source.
 - **Every model output is untrusted input.** Schema-constrained on the way out, validated on the way in, retried or flagged on failure. Raw model text never crosses a stage boundary.
 - **Free text is data, never instructions.** Customer-written notes are quoted to the model, never obeyed by it.
 - **Model judgment is recorded, never silently applied.** Whatever the LLM overrides keeps its original value alongside the reason, so every change is auditable.
 - **Preprocessing is an artifact, not a step.** Extraction is non-deterministic; benchmarks must not be. It runs once, its output is committed, and everything downstream reads that.
-- **Broken data gets a "fix your setup" answer, not marketing advice.** A dead tracking script means fix the install, not try exit intent.
+- **Broken data gets a "fix your setup" answer, not marketing advice.** For example, a dead tracking script means fix the install, not try exit intent.
 - **One action per user.** One diagnosis, one recommendation. Not a list of tips.
 
 ## 2. Dataset traps (must all be handled)
