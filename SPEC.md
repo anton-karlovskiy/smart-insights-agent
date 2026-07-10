@@ -70,7 +70,7 @@ Pydantic models for:
 - `RawWebsite`: the input row as-is (`id`, `website_url`, `reported_industry`, `opt_in_rate`, `current_setup_notes`).
 - `CleanWebsite`: the raw row plus the fields the pipeline adds, keeping every original field for traceability —
   - `canonical_industry_segment: str` — normalization output (stage 2).
-  - `cleaned_setup_notes: list[str]` — `current_setup_notes` split into conversion-setup passages, each lightly polished (typos/grammar only, meaning preserved), off-topic passages dropped; raw notes retained untouched (stage 2).
+  - `cleaned_setup_notes: list[str]` — `current_setup_notes` split into conversion-setup notes, each lightly polished (typos/grammar only, meaning preserved), off-topic notes dropped; the raw `current_setup_notes` string is retained untouched (stage 2).
   - `impossible_metric_anomaly: bool` — stage 3.
   - `edge_case_anomaly: str | None` — one-line explanation when the row's fields disagree, else `None` (stage 2).
   - `benchmark: Benchmark | None` — stage 4.
@@ -94,7 +94,7 @@ Two steps — a deterministic lookup, then an LLM cross-check:
    Unknown values map to `other` with a flag rather than crashing.
 
    Clean-row counts per segment (all 30 rows get a segment, but the five anomalous rows — 3, 4, 8, 12, 20 — are excluded from benchmark membership): ecommerce_retail 9, saas_b2b 5, media_content 5, local_services 3, professional_services 2, education 1. These counts double as a sanity check during the build.
-2. **LLM cross-check.** The stage-2 preprocessing call reads `reported_industry` and the row's `cleaned_setup_notes` and returns the final `canonical_industry_segment`, using the lookup result as a strong prior. When the passages plainly describe a different business than the label (ID 3: labeled SaaS, notes describe selling baking goods), it overrides the mapping and records the disagreement in `edge_case_anomaly`. The prompt is conservative — override only on a clear contradiction, so correct rows are not churned.
+2. **LLM cross-check.** The stage-2 preprocessing call reads `reported_industry` and the row's `cleaned_setup_notes` and returns the final `canonical_industry_segment`, using the lookup result as a strong prior. When the notes plainly describe a different business than the label (ID 3: labeled SaaS, notes describe selling baking goods), it overrides the mapping and records the disagreement in `edge_case_anomaly`. The prompt is conservative — override only on a clear contradiction, so correct rows are not churned.
 
 Exact segment membership is an implementation call. The tests pin the important cases (ID 3 ends up in ecommerce, all the ecommerce spelling variants land together).
 
@@ -217,7 +217,7 @@ smart-insights-agent/
 ├── pyproject.toml              # deps: openai, pydantic, pytest (dev)
 ├── data/
 │   ├── optinmonster_users.json
-│   └── enriched.json           # committed stage-2 artifact (segments, passages, anomalies)
+│   └── enriched.json           # committed stage-2 artifact (segments, notes, anomalies)
 ├── examples/
 │   └── sample_insights.json    # committed real output, see below
 ├── out/                        # gitignored
