@@ -75,3 +75,11 @@ Review "1. Design principles" and improve/update it if necessary.
 ## 10.
 
 I've manually updated "2. Dataset traps (must all be handled)" accordingly too. What do you think? Any mistakes or errors do you see?
+
+## 11.
+
+In this @SPEC.md I want to harmonize terms for consistency.
+
+For example, "industry label", "label", "segment" are used interchangeably but let's use "segment", "industry segment", "canonical industry segment" consistently.
+"user", "account" -> "website"
+Not use "user_id" but just "id"
