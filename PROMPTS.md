@@ -111,11 +111,11 @@ For "impossible_metric_anomaly" is true or "edge_case_anomaly" is not None, "ben
 
 Five flags — places I made a call or the model shifts behavior
 
-1. setup_passages kept (as said up top). It's in the models and the facts dict. One-word fix if you meant to drop it.
+1. cleaned_setup_notes kept (as said up top). It's in the models and the facts dict. One-word fix if you meant to drop it.
 2. Anomalous rows now get zero recommendation. Your rule (insight = None) means IDs 8, 20, 4, 12, 3 receive no insight — I updated §9 accordingly. Concretely: ID 12 no longer gets an explicit "add email capture" (it's folded into its edge_case_anomaly text), reversing the old acceptance line. The brief wants "a recommendation for each user," so confirm you're OK that broken rows get a diagnosis-only treatment.
 3. ID 8 gets only a boolean. It has impossible_metric_anomaly: true but no edge_case_anomaly string (your §2 table leaves it empty), so it ends up with no human-readable message at all. Want impossible-metric rows to also carry a short explanation (e.g. "rate 105% is impossible — verify tracking"), or is the flag enough?
 4. New: a preprocess command + committed data/enriched.json + preprocess.py. I introduced these because once normalization is an LLM step, your own principle 6 ("preprocessing is an artifact... its output is committed") plus the "pytest offline, no API key" acceptance criterion require the stage-2 output to be committed. Side effect: clean now reads --enriched data/enriched.json instead of the raw input. This is the biggest thing I added rather than derived — tell me if you'd rather structure it differently.
-5. Thin-segment fallback has nowhere to live in your Benchmark schema (no scope field), so I signal it by setting the benchmark's canonical_industry_segment to all_segments. And top_performer_ids are just pointers — the top performers' setups aren't passed to the LLM, so "what to change" rests on the row's own setup_passages + rate gap. Both are workable but worth a glance.
+5. Thin-segment fallback has nowhere to live in your Benchmark schema (no scope field), so I signal it by setting the benchmark's canonical_industry_segment to all_segments. And top_performer_ids are just pointers — the top performers' setups aren't passed to the LLM, so "what to change" rests on the row's own cleaned_setup_notes + rate gap. Both are workable but worth a glance.
 
 > The brief wants "a recommendation for each user," so confirm you're OK that broken rows get a diagnosis-only treatment.
 
