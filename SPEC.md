@@ -67,8 +67,8 @@ Stage 2's LLM output is committed as a preprocessing artifact, so stages 3, 4, 6
 
 Pydantic models for:
 
-- `RawWebsite`: the input row as-is (`id`, `website_url`, `reported_industry`, `opt_in_rate`, `current_setup_notes`).
-- `CleanWebsite`: the raw row plus the fields the pipeline adds, keeping every original field for traceability —
+- `RawRow`: the input row as-is (`id`, `website_url`, `reported_industry`, `opt_in_rate`, `current_setup_notes`).
+- `EnrichedRow`: the raw row plus the fields the pipeline adds, keeping every original field for traceability —
   - `canonical_industry_segment: str` — normalization output (stage 2).
   - `cleaned_setup_notes: list[str]` — `current_setup_notes` split into conversion-setup notes, each lightly polished (typos/grammar only, meaning preserved), off-topic notes dropped; the raw `current_setup_notes` string is retained untouched (stage 2).
   - `impossible_metric_anomaly: bool` — stage 3.
