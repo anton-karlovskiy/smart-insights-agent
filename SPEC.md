@@ -23,15 +23,12 @@ Source: `data/optinmonster_users.json` (30 rows: `id`, `website_url`, `reported_
 
 | ID | Problem | Correct handling |
 |----|---------|------------------|
-| 8  | `opt_in_rate: 105.0`, impossible | Quarantine metric. Required action category: `verify_tracking`. Never benchmark with it. |
-| 20 | `opt_in_rate: -0.5`, impossible; notes say webhook is dead | Quarantine metric. Required action category: `fix_webhook`. |
-| 4  | Rate 0.0 with 15k visitors but 0 impressions recorded | Broken install, not underperformance. Required action category: `fix_installation`. |
-| 12 | Rate 0.02 but campaign has no email input field | Rate is not comparable (nothing to opt into). Flag as `not_a_capture_campaign`. Recommendation: add an email capture step. |
-| 3  | `reported_industry: "SaaS"` but notes describe selling baking goods | Cross-check label against notes. Reclassify to Ecommerce and flag `industry_reclassified`. |
-| 27 | Notes state it duplicates ID 1's setup on another domain | Flag `duplicate_setup_of: 1`. Keep the row (it is a real site), note it in output. |
+| 8  | `opt_in_rate: 105.0` | "impossible_metric_anomaly": true; Never benchmark with it |
+| 20 | `opt_in_rate: -0.5`, "Form submission drops lead into a dead Webhook URL. Needs review." | "impossible_metric_anomaly": true; "edge_case_anomaly": "Its form drops leads into a dead webhook URL, so submissions may be happening and simply vanishing."; Never benchmark with it |
+| 4  | `opt_in_rate: 0.0`, "0 impressions recorded this month despite 15k unique visitors" | "edge_case_anomaly": "It shows 0.0 with 15,000 unique visitors and zero impressions recorded, meaning the script installed via manual header injection is not firing."; Never benchmark with it |
+| 12 | `opt_in_rate: 0.02`, "No email input field, just a button linking to shop page" | "edge_case_anomaly": "Its rate of 0.02 is meaningless because the note says there is no email input field, just a button to the shop. It is not an opt-in campaign, so the denominator is measuring the wrong thing."; Never benchmark with it |
+| 3  | `reported_industry: "SaaS"`, "Selling premium baking sheets and silicone molds" | "edge_case_anomaly": "It is labeled SaaS while the note clearly describes selling baking sheets and silicone molds, so the note contradicts the field."; Never benchmark with it |
 | all | Industry labels inconsistent ("eCommerce", "ecommerce", "E-comm", "Retail / Ecom", ...) | Normalize to a small canonical segment set (section 4.2). |
-
-Rows 8, 20, and 4 are "quarantined": their rates are excluded from all benchmark math and they receive deterministic fix-type actions. Row 12's rate is also excluded from benchmarks (it measures a different thing), but the row itself is healthy enough for a normal recommendation.
 
 ## 3. Architecture
 
