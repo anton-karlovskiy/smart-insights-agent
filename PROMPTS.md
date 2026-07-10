@@ -39,7 +39,7 @@ As you can see the data at G:\anton\02_projects\smart-insights-agent\data\optinm
 - "reported_industry" is messy and expressed with different wording for the same segment. I think we should harmonize them first by adding a separate field named "canonical_industry_segment".
 - "current_setup_notes" is is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site. It is not structured data. It reads like something a support rep or onboarding specialist typed into a CRM: inconsistent casing, some entries in full sentences, some in lowercase fragments, no schema. It also includes some parts that are not related to conversion setup, which should be flagged/filtered in the process of data preprocessing. I'll specify how to handle them down the line.
 
-Review ## 1. Design principles at @SPEC.md and update accordingly.
+Review "1. Design principles" at @SPEC.md and update accordingly.
 
 For your reference, you can check G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\temp\llm-for-data-preprocessing.md to see how LLM is used for modern data science/analysis.
 
@@ -53,7 +53,7 @@ current_setup_notes is a free-text. So I'm going to use LLM to split it into a l
 And when splitting, LLM can also polish passages without inventing new content. The meaning should stay the same but typos and grammar mistakes can be fixed by LLM.
 LLM needs to use structured output in this case too.
 
-Review 1. Design principles and update if necessary since I've specified the usage of LLM more.
+Review "1. Design principles" and update if necessary since I've specified the usage of LLM more.
 
 ## 9.
 
@@ -70,4 +70,8 @@ ID:12 -> Rate 0.02 but campaign has no email input field
 ID:3 -> reported_industry: "SaaS" but notes describe selling baking goods
 In this case, I'm going to add a separate field named "edge_case_anomaly" and use LLM to explain why a certain row is anomaly as its value.
 
-Review 1. Design principles and improve/update it if necessary.
+Review "1. Design principles" and improve/update it if necessary.
+
+## 10.
+
+I've manually updated "2. Dataset traps (must all be handled)" accordingly too. What do you think? Any mistakes or errors do you see?
