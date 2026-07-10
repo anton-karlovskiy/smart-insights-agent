@@ -20,3 +20,12 @@ The SPEC.md is a technical specification document which I can use as a foundatio
 ## 4.
 
 I'm using OpenAI GPT model not Claude. Can you update @SPEC.md accordingly?
+
+## 5.
+
+@applications/AI-First Developer - Awesome Motive/take-home-assignment/OptinMonster_Dataset.json
+
+Please review all "current_setup_notes" contents. And give me some insight into what they are for in general. Of course, there are some anomalies but most of them are related to some setup for improving
+their conversion rates.
+
+Write down what you've described into @"applications/AI-First Developer - Awesome Motive/temp\" as an md file.
