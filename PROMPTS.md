@@ -54,3 +54,20 @@ And when splitting, LLM can also polish passages without inventing new content. 
 LLM needs to use structured output in this case too.
 
 Review 1. Design principles and update if necessary since I've specified the usage of LLM more.
+
+## 9.
+
+I have to filter out anomaly rows from the given data. In this data, there are two cases of anomaly.
+
+The most explicit and clear case is impossible "opt_in_rate" metric. Those metric values that are not in the range of 0 to 100 are all impossible. And those rows are anomalies. This
+can be done by Python without using LLM.
+In this case, I'm going to add a separate field named "impossible_metric_anomaly" with boolean value.
+
+There is an edge case for anomaly.
+"reported_industry", "opt_in_rate", and "current_setup_notes" values might disagree. You can find those examples at ID:4, ID:12, ID:3 at @data/optinmonster_users.json .
+ID:4 -> Rate 0.0 with 15k visitors but 0 impressions recorded
+ID:12 -> Rate 0.02 but campaign has no email input field
+ID:3 -> reported_industry: "SaaS" but notes describe selling baking goods
+In this case, I'm going to add a separate field named "edge_case_anomaly" and use LLM to explain why a certain row is anomaly as its value.
+
+Review 1. Design principles and improve/update it if necessary.
