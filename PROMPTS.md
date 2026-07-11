@@ -215,3 +215,13 @@ The spec workflow follows the general context-engineering rules:
 - **You are in control** — you steer the AI and verify its output.
 
 Can you review @SPEC.md with the above principles?
+
+## 23.
+
+According to "What to Submit (The Deliverables)" from G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\take-home-assignment\assignment-brief.md .
+I have to submit 2. and 3. as well as 1.
+
+I will be working on 1. now.
+
+Can you summarize 2. and 3. from this whole session as an md file into G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\deliverables?
+Here, you don't have to make a loom video but you can prepare some transcript.
