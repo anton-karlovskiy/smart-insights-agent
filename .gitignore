@@ -3,10 +3,9 @@
 .env.*
 !.env.example
 
-# Pipeline output. sample_insights.json is committed so reviewers
-# without an API key can run `evaluate` against real results.
-out/*
-!out/sample_insights.json
+# Pipeline output. The committed sample lives in examples/sample_insights.json
+# (see SPEC.md §7) so reviewers without an API key can run `evaluate` against it.
+out/
 
 # Python
 __pycache__/
