@@ -28,7 +28,7 @@ Input schema — the only fixed contract: `id`, `website_url`, `reported_industr
 | 4  | `opt_in_rate: 0.0`, "0 impressions recorded this month despite 15k unique visitors" | "edge_case_anomaly": "It shows 0.0 with 15,000 unique visitors and zero impressions recorded, meaning the script installed via manual header injection is not firing."; Never benchmark with it |
 | 12 | `opt_in_rate: 0.02`, "No email input field, just a button linking to shop page" | "edge_case_anomaly": "Its rate of 0.02 is meaningless because the note says there is no email input field, just a button to the shop. It is not an opt-in campaign, so the denominator is measuring the wrong thing."; Never benchmark with it |
 | 3  | `reported_industry: "SaaS"`, "Selling premium baking sheets and silicone molds" | "edge_case_anomaly": "Its reported_industry is SaaS while the note clearly describes selling baking sheets and silicone molds, so the note contradicts the field."; Never benchmark with it |
-| all | `reported_industry` values inconsistent ("eCommerce", "ecommerce", "E-comm", "Retail / Ecom", ...) | Normalize to a small canonical industry segment set (section 4.2). |
+| all | `reported_industry` values inconsistent ("eCommerce", "ecommerce", "E-comm", "Retail / Ecom", ...) | Normalize to a canonical industry segment set derived from the data (section 4.2). |
 
 ## 3. Architecture
 
@@ -90,12 +90,12 @@ The tool must work on data it has never seen: `data/optinmonster_users.json` is 
 Merging unseen wordings of the same industry ("eCommerce", "E-comm", "Retail / Ecom") is exactly the judgment a lookup table cannot make in advance, so the derivation is an LLM call — structured output, like every other model call. Everything around it stays deterministic:
 
 1. **Collect (Python, `normalize.py`).** One pass over the rows gathers the unique `reported_industry` values (case- and whitespace-folded dedupe). Token cost then scales with distinct wordings, not row count: even a million rows collapse to a few hundred strings.
-2. **Derive (LLM, one call, made from `preprocess.py`).** The deduplicated list goes into a single structured-output call returning `{segments: list[str], mapping: dict[str, str]}`. Prompt rules: merge variants that mean the same industry, keep the set small enough that segments are not too thin for the dataset's size, snake_case names, map anything unclassifiable to `other`. `normalize.py` validates the result before use — every collected variant appears as a key in `mapping`, every mapped value is in `segments`; retry once with the validation error appended, fail loudly after that.
+2. **Derive (LLM, one call, made from `preprocess.py`).** The deduplicated list goes into a single structured-output call returning `{segments: list[str], mapping: dict[str, str]}`. Prompt rules: merge variants that mean the same industry, snake_case names, map anything unclassifiable to `other`. How many segments come out is the model's call, driven by the data's size and composition — the spec pins no count; the only steer is to avoid segments too thin to benchmark. `normalize.py` validates the result before use — every collected variant appears as a key in `mapping`, every mapped value is in `segments`; retry once with the validation error appended, fail loudly after that.
 3. **Apply (Python, `normalize.py`).** A second pass over the rows stamps `canonical_industry_segment` by plain dict lookup. No per-row LLM calls for normalization.
 
 The derived map is committed as `data/segment_map.json` beside the enriched rows, so the model's vocabulary choice is auditable and every downstream run reads the same segments (§1: judgment recorded; preprocessing is an artifact).
 
-Sanity checks against the sample (grouping invariants, not pinned names — the LLM chooses the names): a single-digit segment count; all the ecommerce spellings land in one segment; every row gets a segment, including anomalous ones, which still never enter benchmark membership.
+Sanity checks against the sample (grouping invariants — no pinned names or counts, both are the LLM's call): variants that mean the same industry actually merged, so there are fewer segments than distinct wordings; all the ecommerce spellings land in one segment; every row gets a segment, including anomalous ones, which still never enter benchmark membership.
 
 Scaling note (mirror this as a code comment in `normalize.py`): the dedupe already keeps the derive call cheap, but past a few thousand distinct variants, chunk the list — and move it, along with the per-row stage-2 calls, to the OpenAI Batch API (24h completion window, ~50% discount). Out of scope for this prototype (§10).
 
@@ -112,7 +112,7 @@ The two can co-occur. Nothing here assigns a recommendation: an anomalous row ca
 
 Deterministic, computed over clean (non-anomalous) rows only. Per `canonical_industry_segment`:
 
-- `website_count`, `mean_opt_in_rate`, `median_opt_in_rate`, `min_opt_in_rate`, `max_opt_in_rate` — median leads because n is tiny and skewed; all plain arithmetic on the segment's opt-in rates.
+- `website_count`, `mean_opt_in_rate`, `median_opt_in_rate`, `min_opt_in_rate`, `max_opt_in_rate` — median leads because per-segment samples can be small and skewed; all plain arithmetic on the segment's opt-in rates.
 - `top_performer_ids` — the highest-rate members, as pointers the report can surface. (Setup features were dropped, so the benchmark no longer models *what* top performers do differently; the recommendation grounds "what to change" in the row's own `cleaned_setup_notes` and where its rate sits in the distribution.)
 
 The per-row `facts` handed to the insight LLM (§4.5), for clean rows only — exactly what the model sees:

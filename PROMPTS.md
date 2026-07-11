@@ -158,3 +158,11 @@ This SPEC.md is an architecture level document so I don't like you to take any s
 As I mentioned earlier, that's sample data and not project constants so should not be referenced in general. In reality, data is dynamic although its schema is the same as that of the sample data.
 
 Review the whole doc and update sample data usage as an example accordingly.
+
+## 17.
+
+> Sanity checks against the sample (grouping invariants, not pinned names — the LLM chooses the names): a single-digit segment count; all the ecommerce spellings land in one segment; every row gets a segment, including anomalous ones, which still never enter benchmark membership.
+
+We cannot define how many canonical industry segments will be derived by LLM. It will depend on several factors of the data like size and composition.
+For the current sample data, it could be a single-digit segment count but for real-world data, no guarantee that it could be a single-digit segment count.
+Please review @SPEC.md about that and update if necessary.
