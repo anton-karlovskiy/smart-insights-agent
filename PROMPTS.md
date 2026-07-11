@@ -193,4 +193,11 @@ The purpose of next-best-action recommendation is something like:
 How to determine how many top performers is also a problem. In my opinion, maximum 3 rows with top "opt_in_rate" values higher than the current "opt_in_rate" value can be selected. It's my quick opinion.
 If you know a better approach based on similar statistics problems, you can recommend and follow that one.
 
-## 20
+## 20.
+
+I'm thinking of an edge case where the current row is the very top performer. In that case, how to generate insight for that row?
+
+## 21.
+
+I think @SPEC.md is mostly done. I reviewed it manually and it looks good overall.
+Can you review it again to make sure that there are no mistakes or errors before I start vibe coding?

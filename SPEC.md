@@ -107,7 +107,7 @@ Two independent anomaly signals gate a row out of benchmarking and insight. A ro
 1. **`impossible_metric_anomaly`** (this stage, pure Python): `opt_in_rate < 0` or `> 100`. A plain range check, nothing to infer.
 2. **`edge_case_anomaly`** (produced upstream in stage 2, LLM): a one-line explanation set when `reported_industry` / `opt_in_rate` / `cleaned_setup_notes` disagree in a way no rule can catch — a rate that measures nothing because there is no capture field, an install recording zero impressions against real traffic, a form dropping leads into a dead webhook, a `reported_industry` that contradicts the notes. `None` when the row is internally consistent.
 
-   The pass-B system prompt briefs the model on the data before asking for judgment (§1) — above all that `current_setup_notes` is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site: not structured data, no schema, inconsistent casing, full sentences next to lowercase fragments, like something a support rep or onboarding specialist typed into a CRM. That briefing is what lets the model split and polish the notes correctly and judge disagreement without over-reading noise as signal.
+   The pass-B system prompt briefs the model on the data before asking for judgment (§1) — above all that `current_setup_notes` is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site: not structured data, no schema, inconsistent casing, full sentences next to lowercase fragments, like something a support rep or onboarding specialist typed into a CRM. That briefing is what lets the model split and polish the notes correctly and judge disagreement without over-reading noise as signal. One boundary rule: an out-of-range rate is **not** an edge case — the deterministic check in this section owns it; the model reports only what the notes reveal. (That is why an impossible-rate row whose notes also describe a dead webhook carries both flags, while an impossible-rate row with unremarkable notes carries only the boolean.)
 
 The two can co-occur. Nothing here assigns a recommendation: an anomalous row carries only its flag and, where set, the explanation — and that explanation is the "fix your setup" message for a broken row.
 
@@ -184,7 +184,7 @@ On failure: retry the API call once with the validation error appended to the us
 
 ### 4.7 Report (`report.py` + `out/insights.json`)
 
-- `out/insights.json`: array of `{id, website_url, canonical_industry_segment, opt_in_rate, impossible_metric_anomaly, edge_case_anomaly, benchmark, insight, status}` for every input row. Status is `ok`, `needs_review`, or `llm_skipped` (in `--no-llm` mode).
+- `out/insights.json`: array of `{id, website_url, canonical_industry_segment, opt_in_rate, cleaned_setup_notes, impossible_metric_anomaly, edge_case_anomaly, benchmark, top_performers, insight, status}` for every input row — the row carries everything the grounding check reads (§4.6), so `evaluate` can re-verify from this file alone, offline. Status is `ok`, `needs_review`, or `llm_skipped` (in `--no-llm` mode); anomalous rows are `ok` — they were processed correctly, and their anomaly fields tell the story.
 - Console output: a compact table (id, site, segment, rate vs segment median, and either the recommendation or the anomaly note) plus a summary line (n clean, n anomalous, n needs_review). Plain `print` or `tabulate` is fine, no rich TUI needed.
 
 ## 5. CLI
@@ -193,13 +193,14 @@ Package `smart_insights`, entry point via `python -m smart_insights` (argparse s
 
 ```
 python -m smart_insights preprocess [--input data/optinmonster_users.json] [--out data/enriched.json]
-    # stage 2 (the LLM pass): writes the committed preprocessing artifact. The one command that must hit the API to regenerate.
+    # stage 2 (the LLM pass): writes the committed preprocessing artifacts (enriched rows,
+    # plus data/segment_map.json alongside). The one command that must hit the API to regenerate.
 
 python -m smart_insights clean      [--enriched data/enriched.json]
     # stages 3-4 over the committed artifact: prints segments, anomaly flags, benchmark table. No API calls.
 
 python -m smart_insights run        [--enriched ...] [--out out/insights.json] [--id N] [--no-llm]
-    # stages 3-5: benchmark + insight; --id runs one row (cheap debugging); --no-llm stops after stage 4
+    # stages 3-7: benchmark, insight, validation, report; --id runs one row (cheap debugging); --no-llm stops after stage 4
 
 python -m smart_insights evaluate   [--insights out/insights.json]
     # re-runs all validate.py checks against a saved output file and prints pass/fail per row
@@ -215,7 +216,7 @@ python -m smart_insights evaluate   [--insights out/insights.json]
 2. `audit`: `impossible_metric_anomaly` is true for exactly the sample rows with out-of-range rates, false for healthy rows (pure Python, no mock needed).
 3. `benchmark`: anomalous rows are excluded from the stats; a segment's median/min/max/mean are correct on a fixture; `top_performer_ids` holds at most three IDs, all with rates above the row's own, in descending rate order — and is empty for the segment leader.
 4. `validate`: grounding rejects an insight containing an invented number; the one-action heuristic works.
-5. `insights`: with a mocked client, the retry-on-validation-failure path and the `needs_review` path.
+5. `insights` and `preprocess`: with a mocked client, the retry-on-validation-failure path, the `needs_review` path, and pass-B output handling (a refusal or `None` parse is a failure, not a crash).
 
 Not required: integration tests that hit the real API, coverage targets, CI config.
 
