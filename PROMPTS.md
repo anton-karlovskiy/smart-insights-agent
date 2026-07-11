@@ -174,3 +174,21 @@ For example, for "edge_case_anomaly", it will be helpful to add the following in
 "current_setup_notes" is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site. It is not structured data. It reads like something a support rep or onboarding specialist typed into a CRM: inconsistent casing, some entries in full sentences, some in lowercase fragments, no schema.
 
 In general, I'm emphasizing the importance of prompt engineering when using LLM like crafted system prompt and user prompt.
+
+## 19.
+
+For 4.4 Benchmarks
+
+> - `top_performer_ids` — the highest-rate members, as pointers the report can surface. (Setup features were dropped, so the benchmark no longer models *what* top performers do differently; the recommendation grounds "what to change" in the row's own `cleaned_setup_notes` and where its rate sits in the distribution.)
+
+Values of "top_performer_ids" field are listed in descending order of corresponding "opt_in_rate" values. That is, the row ID with the highest "opt_in_rate" value goes first. Simply speaking, ranked based on "opt_in_rate" value.
+Setup notes of the top performers are not included in benchmarks in order to make them (benchmarks) look compact not verbose. But when generating insight, those top performers rows are looked up from the data and their "cleaned_setup_notes" values are referred to.
+
+The purpose of conversion benchmarking is something like:
+**Where you stand**: "Sites like yours (same niche, similar traffic) convert opt-ins at 5.2%. You're at 3.1%."
+
+The purpose of next-best-action recommendation is something like:
+**The single best next move**: "The top performers in your segment almost all use a two-step campaign with an exit-intent trigger. That's the one change most likely to move your number."
+
+How to determine how many top performers is also a problem. In my opinion, maximum 3 rows with top "opt_in_rate" values higher than the current "opt_in_rate" value can be selected. It's my quick opinion.
+If you know a better approach based on similar statistics problems, you can recommend and follow that one.
