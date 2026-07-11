@@ -192,3 +192,5 @@ The purpose of next-best-action recommendation is something like:
 
 How to determine how many top performers is also a problem. In my opinion, maximum 3 rows with top "opt_in_rate" values higher than the current "opt_in_rate" value can be selected. It's my quick opinion.
 If you know a better approach based on similar statistics problems, you can recommend and follow that one.
+
+## 20
