@@ -146,4 +146,15 @@ I'm not sure how to build an algorithm to achieve this industry normalization fo
 
 The above approach is what I've quickly thought of but if you can think of a better approach, feel free to use that.
 
+In the process, do not reference any other fields than "reported_industry" of each data row. So the truth should come from that single field.
+
 Can you update 4.2 Industry normalization accordingly?
+
+## 16.
+
+@SPEC.md
+
+This SPEC.md is an architecture level document so I don't like you to take any specific sample data information like "as in ID 3, that" as an example here.
+As I mentioned earlier, that's sample data and not project constants so should not be referenced in general. In reality, data is dynamic although its schema is the same as that of the sample data.
+
+Review the whole doc and update sample data usage as an example accordingly.
