@@ -39,9 +39,12 @@ data/optinmonster_users.json
 [1. load & validate]      pydantic models, fail loudly on malformed input
         |
         v
-[2. preprocess (LLM)]     per row, one structured-output call ->
-        |                 canonical_industry_segment, cleaned_setup_notes
-        |                 (split, polish, drop off-topic), edge_case_anomaly
+[2. preprocess (LLM)]     A: one dataset-level call derives the segment map
+        |                 from unique reported_industry values; Python stamps
+        |                 canonical_industry_segment on each row
+        |                 B: per row, one structured-output call ->
+        |                 cleaned_setup_notes (split, polish, drop
+        |                 off-topic), edge_case_anomaly
         v
 [3. audit (Python)]       impossible_metric_anomaly from opt_in_rate range
         |
@@ -69,7 +72,7 @@ Pydantic models for:
 
 - `RawRow`: the input row as-is (`id`, `website_url`, `reported_industry`, `opt_in_rate`, `current_setup_notes`).
 - `EnrichedRow`: the raw row plus the fields the pipeline adds, keeping every original field for traceability —
-  - `canonical_industry_segment: str` — normalization output (stage 2).
+  - `canonical_industry_segment: str` — normalization output (stage 2, pass A; derived from `reported_industry` alone, §4.2).
   - `cleaned_setup_notes: list[str]` — `current_setup_notes` split into conversion-setup notes, each lightly polished (typos/grammar only, meaning preserved), off-topic notes dropped; the raw `current_setup_notes` string is retained untouched (stage 2).
   - `impossible_metric_anomaly: bool` — stage 3.
   - `edge_case_anomaly: str | None` — one-line explanation when the row's fields disagree, else `None` (stage 2).
@@ -82,21 +85,19 @@ A row is **anomalous** when `impossible_metric_anomaly` is true or `edge_case_an
 
 ### 4.2 Industry normalization (`normalize.py`)
 
-Two steps — a deterministic lookup, then an LLM cross-check:
+The tool must work on data it has never seen: `data/optinmonster_users.json` is sample data, and a hardcoded variant table would only ever fit that sample. So the canonical segment set is derived from the dataset itself — and from `reported_industry` **alone**. No other field is consulted; the segment normalizes what the customer reported, it does not re-diagnose the business. (When another field contradicts `reported_industry`, as in ID 3, that is recorded as `edge_case_anomaly` (§4.3) — it never changes the segment.)
 
-1. **Segment mapping.** Case-insensitive lookup table from every variant in the dataset to a canonical segment. Canonical set (keep it to about six so segments are not too thin across 30 rows):
-   - `ecommerce_retail` (eCommerce, ecommerce, E-comm, E-commerce, Ecommerce, Retail, Retail / Ecom)
-   - `saas_b2b` (SaaS, Software, Software / B2B, B2B Software, SaaS / Tech, B2B Services)
-   - `media_content` (Media / Blog, Blog / Affiliate, Travel / Lifestyle, Entertainment, Finance: the dataset's one "Finance" row, ID 14, is a crypto news site)
-   - `local_services` (Local Business, Medical / Local Business, Home Services, Fitness & Health)
-   - `professional_services` (Professional Services, Agency, Property)
-   - `education` (Education)
-   Unknown values map to `other` with a flag rather than crashing.
+Merging unseen wordings of the same industry ("eCommerce", "E-comm", "Retail / Ecom") is exactly the judgment a lookup table cannot make in advance, so the derivation is an LLM call — structured output, like every other model call. Everything around it stays deterministic:
 
-   Clean-row counts per segment (all 30 rows get a segment, but the five anomalous rows — 3, 4, 8, 12, 20 — are excluded from benchmark membership): ecommerce_retail 9, saas_b2b 5, media_content 5, local_services 3, professional_services 2, education 1. These counts double as a sanity check during the build.
-2. **LLM cross-check.** The stage-2 preprocessing call reads `reported_industry` and the row's `cleaned_setup_notes` and returns the final `canonical_industry_segment`, using the lookup result as a strong prior. When the notes plainly describe a different business than `reported_industry` (ID 3: reported SaaS, notes describe selling baking goods), it overrides the mapping and records the disagreement in `edge_case_anomaly`. The prompt is conservative — override only on a clear contradiction, so correct rows are not churned.
+1. **Collect (Python, `normalize.py`).** One pass over the rows gathers the unique `reported_industry` values (case- and whitespace-folded dedupe). Token cost then scales with distinct wordings, not row count: 30 rows collapse to ~25 strings, and a million rows would still collapse to a few hundred.
+2. **Derive (LLM, one call, made from `preprocess.py`).** The deduplicated list goes into a single structured-output call returning `{segments: list[str], mapping: dict[str, str]}`. Prompt rules: merge variants that mean the same industry, keep the set small (about six here, so segments are not too thin across 30 rows), snake_case names, map anything unclassifiable to `other`. `normalize.py` validates the result before use — every collected variant appears as a key in `mapping`, every mapped value is in `segments`; retry once with the validation error appended, fail loudly after that.
+3. **Apply (Python, `normalize.py`).** A second pass over the rows stamps `canonical_industry_segment` by plain dict lookup. No per-row LLM calls for normalization.
 
-Exact segment membership is an implementation call. The tests pin the important cases (ID 3 ends up in ecommerce, all the ecommerce spelling variants land together).
+The derived map is committed as `data/segment_map.json` beside the enriched rows, so the model's vocabulary choice is auditable and every downstream run reads the same segments (§1: judgment recorded; preprocessing is an artifact).
+
+Sanity checks on the sample data (grouping invariants, not pinned names — the LLM chooses the names): about six segments; all the ecommerce spellings land in one segment; every row gets a segment, including the five anomalous ones (3, 4, 8, 12, 20), which still never enter benchmark membership.
+
+Scaling note (mirror this as a code comment in `normalize.py`): the dedupe already keeps the derive call cheap, but past a few thousand distinct variants, chunk the list — and move it, along with the per-row stage-2 calls, to the OpenAI Batch API (24h completion window, ~50% discount). Out of scope for this prototype (§10).
 
 ### 4.3 Anomaly audit (`audit.py`)
 
@@ -134,7 +135,7 @@ The per-row `facts` handed to the insight LLM (§4.5), for clean rows only — e
 }
 ```
 
-(Benchmark numbers illustrative.) `cleaned_setup_notes` lets the recommendation reference the site's actual setup ("your sitewide 5s popup with no exit intent"); the grounding check in §4.6 treats the serialized facts as the universe of permitted numbers, so every number the model may cite is here.
+(Benchmark numbers and segment names illustrative — the LLM derives the actual names, §4.2.) `cleaned_setup_notes` lets the recommendation reference the site's actual setup ("your sitewide 5s popup with no exit intent"); the grounding check in §4.6 treats the serialized facts as the universe of permitted numbers, so every number the model may cite is here.
 
 ### 4.5 Insight generator (`insights.py`)
 
@@ -199,7 +200,7 @@ python -m smart_insights evaluate   [--insights out/insights.json]
 
 `pytest`, all offline — LLM clients mocked, deterministic stages run against the committed `data/enriched.json`. Priorities in order:
 
-1. `normalize`: every industry variant in the dataset maps to the right segment via the lookup; the ID 3 override lands in ecommerce; a correct segment is not churned.
+1. `normalize`: the collect step dedupes variants correctly; the validator rejects a mapping that misses a variant or invents a segment (mocked LLM); against the committed artifact, all ecommerce spellings share one segment and every row's segment is in the derived set.
 2. `audit`: `impossible_metric_anomaly` is true for IDs 8 and 20, false for healthy rows (pure Python, no mock needed).
 3. `benchmark`: anomalous rows are excluded from the stats; a segment's median/min/max/mean are correct on a fixture.
 4. `validate`: grounding rejects an insight containing an invented number; the one-action heuristic works.
@@ -217,7 +218,8 @@ smart-insights-agent/
 ├── pyproject.toml              # deps: openai, pydantic, pytest (dev)
 ├── data/
 │   ├── optinmonster_users.json
-│   └── enriched.json           # committed stage-2 artifact (segments, notes, anomalies)
+│   ├── enriched.json           # committed stage-2 artifact (segments, notes, anomalies)
+│   └── segment_map.json        # committed derived segment set + variant mapping
 ├── examples/
 │   └── sample_insights.json    # committed real output, see below
 ├── out/                        # gitignored
@@ -225,8 +227,8 @@ smart-insights-agent/
 │   ├── __init__.py
 │   ├── __main__.py             # argparse CLI
 │   ├── models.py
-│   ├── normalize.py            # deterministic segment lookup
-│   ├── preprocess.py           # stage-2 LLM pass (segment, cleaned_setup_notes, edge_case_anomaly)
+│   ├── normalize.py            # pure Python: collect variants, validate + apply the derived map
+│   ├── preprocess.py           # stage-2 LLM calls: segment-map derivation + per-row notes/anomaly
 │   ├── audit.py
 │   ├── benchmark.py
 │   ├── insights.py
@@ -241,15 +243,15 @@ smart-insights-agent/
     └── test_insights.py
 ```
 
-Python 3.11+. Keep dependencies to `openai` and `pydantic` (pytest for dev). Two artifacts are committed on purpose so a reviewer without an API key can run everything offline: `data/enriched.json` (the stage-2 preprocessing output, which `clean`/`run`/tests read) and `examples/sample_insights.json` (a real full-run output to read and run `evaluate` against). `out/` stays gitignored so working runs never pollute the diff.
+Python 3.11+. Keep dependencies to `openai` and `pydantic` (pytest for dev). Three artifacts are committed on purpose so a reviewer without an API key can run everything offline: `data/enriched.json` and `data/segment_map.json` (the stage-2 preprocessing outputs, which `clean`/`run`/tests read) and `examples/sample_insights.json` (a real full-run output to read and run `evaluate` against). `out/` stays gitignored so working runs never pollute the diff.
 
 ## 8. Build order
 
 Each milestone should leave the repo runnable and end with a commit. Rough time budget in parentheses (total ~3.5h).
 
 1. **Scaffold** (15 min). `pyproject.toml`, package skeleton, dataset in `data/`, empty CLI that parses subcommands. `.gitignore` (out/, .env, __pycache__).
-2. **Load + normalize** (35 min). `models.py`, `normalize.py` (deterministic lookup), tests.
-3. **Preprocess (LLM)** (45 min). `preprocess.py`: the stage-2 call producing `canonical_industry_segment`, `cleaned_setup_notes`, `edge_case_anomaly`. Run once, commit `data/enriched.json`; verify the five anomalous rows (3, 4, 8, 12, 20) look right.
+2. **Load + normalize** (35 min). `models.py`, `normalize.py` (collect → validate → apply, tests with the LLM mocked).
+3. **Preprocess (LLM)** (45 min). `preprocess.py`: pass A derives the segment map, pass B produces per-row `cleaned_setup_notes` and `edge_case_anomaly`. Run once, commit `data/enriched.json` and `data/segment_map.json`; verify the five anomalous rows (3, 4, 8, 12, 20) look right.
 4. **Audit + benchmarks** (40 min). `audit.py` (`impossible_metric_anomaly`), `benchmark.py`, tests. `clean` now shows anomaly flags and the benchmark table, all offline against the artifact.
 5. **Insight + validation** (45 min). `insights.py`, `validate.py`, retry loop, `run` and `evaluate`. Run the full clean set and commit the result as `examples/sample_insights.json`.
 6. **Polish** (45 min). Console report, README (run instructions, architecture, trap-handling table, video outline), final pass over PROMPTS.md.
@@ -258,7 +260,7 @@ Each milestone should leave the repo runnable and end with a commit. Rough time 
 
 - [ ] `python -m smart_insights run` completes on all 30 rows with a valid `out/insights.json`.
 - [ ] IDs 8, 20, 4, 12, 3 are flagged anomalous (`impossible_metric_anomaly` or `edge_case_anomaly`), excluded from every benchmark, and carry `insight: null`.
-- [ ] ID 3's `canonical_industry_segment` is `ecommerce_retail` and its `edge_case_anomaly` records the reported-industry-vs-notes contradiction.
+- [ ] ID 3's segment follows its `reported_industry` (SaaS-family — normalization never reads other fields), and its `edge_case_anomaly` records the reported-industry-vs-notes contradiction.
 - [ ] ID 12's `edge_case_anomaly` explains the rate measures the wrong thing (no capture field); it is not benchmarked or scored on 0.02%.
 - [ ] No recommendation contains a number that is not in that row's facts (verified by `evaluate`).
 - [ ] `python -m smart_insights evaluate --insights examples/sample_insights.json` passes and exits 0.

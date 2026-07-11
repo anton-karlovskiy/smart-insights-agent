@@ -129,3 +129,21 @@ No need any explanation because "impossible_metric_anomaly: true" explains every
 > Thin-segment fallback has nowhere to live in your Benchmark schema (no scope field), so I signal it by setting the benchmark's canonical_industry_segment to all_segments.
 
 Entirely drop thin-segment fallback. It's an over-engineering feature. First, we should build this prototype with simplicity in mind as proof-of-concept or something.
+
+## 15.
+
+In @SPEC.md, for 4.2 Industry normalization:
+
+It seems like the current industry normalization is done based on the fact that this tool already knows the data well. The data from @data/optinmonster_users.json is just sample data.
+We can add other data in reality and this tool should be able to figure out "canonical industry segments" across the data without looking at the data at all.
+
+For this, I think it should use LLM. My quick approach is as the following:
+Loop through all data rows to grab "reported_industry" values into a list.
+Use LLM to analyze the list and figure out meaningful "canonical industry segments" set. As you can see the sample data from @data/optinmonster_users.json, the same canonical industry segment can be expressed in different wording. That's why I suggest using LLM instead of a deterministic lookup.
+It will have to use structured output of LLM by the way.
+Loop through all data rows again to add to each row "canonical_industry_segment" field with values of "canonical industry segments" set obtained from the above operation.
+I'm not sure how to build an algorithm to achieve this industry normalization for accuracy and efficiency. As you know, LLM tokens are money so we should figure out an effective way without compromising the accuracy. For large data, I believe we should use the batch API feature but for this prototype, let's use iteration for now. And leave some comments in the code and @SPEC.md so later when we want to handle large data, we can quickly address this issue with the batch API.
+
+The above approach is what I've quickly thought of but if you can think of a better approach, feel free to use that.
+
+Can you update 4.2 Industry normalization accordingly?
