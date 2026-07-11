@@ -166,3 +166,11 @@ Review the whole doc and update sample data usage as an example accordingly.
 We cannot define how many canonical industry segments will be derived by LLM. It will depend on several factors of the data like size and composition.
 For the current sample data, it could be a single-digit segment count but for real-world data, no guarantee that it could be a single-digit segment count.
 Please review @SPEC.md about that and update if necessary.
+
+## 18.
+
+When using an LLM to analyze data, we need to tell the LLM what kind of data it is analyzing so it can keep that information as system prompt.
+For example, for "edge_case_anomaly", it will be helpful to add the following information to its system prompt.
+"current_setup_notes" is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site. It is not structured data. It reads like something a support rep or onboarding specialist typed into a CRM: inconsistent casing, some entries in full sentences, some in lowercase fragments, no schema.
+
+In general, I'm emphasizing the importance of prompt engineering when using LLM like crafted system prompt and user prompt.
