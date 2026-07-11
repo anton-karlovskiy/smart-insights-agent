@@ -1,0 +1,91 @@
+"""Normalize: collect dedupes variants; validator rejects bad maps; apply stamps."""
+
+import pytest
+
+from smart_insights.models import RawRow, SegmentMapResponse, VariantMapping
+from smart_insights.normalize import (
+    apply_segment_map,
+    collect_variants,
+    validate_segment_map,
+)
+
+
+def row(id: int, industry: str) -> RawRow:
+    return RawRow(
+        id=id,
+        website_url=f"https://site{id}.com",
+        reported_industry=industry,
+        opt_in_rate=1.0,
+        current_setup_notes="n/a",
+    )
+
+
+def response(segments: list[str], mapping: dict[str, str]) -> SegmentMapResponse:
+    return SegmentMapResponse(
+        segments=segments,
+        mapping=[VariantMapping(variant=k, segment=v) for k, v in mapping.items()],
+    )
+
+
+class TestCollectVariants:
+    def test_dedupes_case_and_whitespace(self):
+        rows = [
+            row(1, "eCommerce"),
+            row(2, "ecommerce"),
+            row(3, " ECOMMERCE "),
+            row(4, "Retail / Ecom"),
+            row(5, "Retail  /  Ecom"),
+        ]
+        variants = collect_variants(rows)
+        assert len(variants) == 2
+        assert variants[0].casefold() == "ecommerce"
+        assert "Retail / Ecom" in variants
+
+    def test_keeps_first_seen_spelling(self):
+        assert collect_variants([row(1, "SaaS"), row(2, "saas")]) == ["SaaS"]
+
+    def test_deterministic_order(self):
+        rows = [row(1, "Zoos"), row(2, "Agency"), row(3, "Media")]
+        assert collect_variants(rows) == ["Agency", "Media", "Zoos"]
+
+
+class TestValidateSegmentMap:
+    def test_accepts_complete_map_and_returns_dict(self):
+        variants = ["SaaS", "eCommerce"]
+        resp = response(["saas", "ecommerce"], {"SaaS": "saas", "eCommerce": "ecommerce"})
+        assert validate_segment_map(variants, resp) == {
+            "SaaS": "saas",
+            "eCommerce": "ecommerce",
+        }
+
+    def test_rejects_missing_variant(self):
+        resp = response(["saas"], {"SaaS": "saas"})
+        with pytest.raises(ValueError, match="'eCommerce' is missing"):
+            validate_segment_map(["SaaS", "eCommerce"], resp)
+
+    def test_rejects_invented_segment(self):
+        resp = response(["saas"], {"SaaS": "saas", "eCommerce": "ecommerce"})
+        with pytest.raises(ValueError, match="'ecommerce', which is not in segments"):
+            validate_segment_map(["SaaS", "eCommerce"], resp)
+
+    def test_reports_every_problem_at_once(self):
+        resp = response(["saas"], {"Media": "media_blog"})
+        with pytest.raises(ValueError) as exc:
+            validate_segment_map(["SaaS", "Media"], resp)
+        assert "'SaaS' is missing" in str(exc.value)
+        assert "'media_blog', which is not in segments" in str(exc.value)
+
+
+class TestApplySegmentMap:
+    def test_stamps_by_folded_lookup(self):
+        rows = [row(1, "eCommerce"), row(2, "ECOMMERCE"), row(3, "SaaS")]
+        mapping = {"eCommerce": "ecommerce", "SaaS": "saas"}
+        assert apply_segment_map(rows, mapping) == {
+            1: "ecommerce",
+            2: "ecommerce",
+            3: "saas",
+        }
+
+    def test_uncovered_variant_fails_loudly(self):
+        with pytest.raises(KeyError, match="row 1"):
+            apply_segment_map([row(1, "Mystery")], {"SaaS": "saas"})
