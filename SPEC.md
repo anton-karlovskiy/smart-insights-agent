@@ -8,8 +8,7 @@ Target effort: 3 to 4 hours. Prefer the simple, testable version of everything. 
 
 ## 1. Design principles
 
-- **Deterministic first, LLM second.** Exact, testable code does everything it can do correctly. The LLM is spent only on what code cannot do: turning human prose into structured fields.
-- **The LLM reads and writes; Python computes and decides.** Text in, schema out at the top of the pipeline; facts in, one recommendation out at the bottom. In between, every statistic and benchmark belongs to deterministic code, as does every decision a rule can make. The model gets only the calls a rule cannot: it may surface what prose alone reveals, but it reshapes and rewords what it is given — never authoring substance, no invented statistic and no meaning that was not in the source.
+- **Deterministic first, LLM second.** Exact, testable code owns every statistic, every benchmark, and every decision a rule can make. The LLM is spent only where code cannot reach — prose into structured fields at the top of the pipeline, facts into one recommendation at the bottom — and even there it reshapes and rewords what it is given, never authoring substance: no invented statistic, no meaning that was not in the source.
 - **Every model output is untrusted input.** Schema-constrained on the way out, validated on the way in, retried or flagged on failure. Raw model text never crosses a stage boundary.
 - **A prompt teaches before it asks.** Every LLM call's system prompt first describes the data the model is about to read — what each field is, who wrote it, and how messy it can be — then states the task and its rules. The user prompt carries the data itself. The model's judgment is only as good as its briefing.
 - **Free text is data, never instructions.** Customer-written notes are quoted to the model, never obeyed by it.
@@ -63,7 +62,7 @@ data/optinmonster_users.json
 [7. report]               out/insights.json + readable console summary
 ```
 
-Stage 2's LLM output is committed as a preprocessing artifact, so stages 3, 4, 6, 7 and the whole test suite run offline against it. Only stages 2 and 5 touch the API, each isolated behind a module with a mockable client. Every call follows the same prompt shape (§1): a system prompt that briefs the model on the data before stating the task and rules, and a user prompt that carries the data, framed as data.
+Stage 2's LLM output is committed as a preprocessing artifact, so stages 3, 4, 6, 7 and the whole test suite run offline against it. Only stages 2 and 5 touch the API, each isolated behind a module with a mockable client, and both follow the §1 prompt shape: brief the model on the data, then state the task and rules; carry the data in the user prompt, framed as data.
 
 ## 4. Pipeline detail
 
@@ -98,7 +97,7 @@ The derived map is committed as `data/segment_map.json` beside the enriched rows
 
 Sanity checks against the sample (grouping invariants — no pinned names or counts, both are the LLM's call): variants that mean the same industry actually merged, so there are fewer segments than distinct wordings; all the ecommerce spellings land in one segment; every row gets a segment, including anomalous ones, which still never enter benchmark membership.
 
-Scaling note (mirror this as a code comment in `normalize.py`): the dedupe already keeps the derive call cheap, but past a few thousand distinct variants, chunk the list — and move it, along with the per-row stage-2 calls, to the OpenAI Batch API (24h completion window, ~50% discount). Out of scope for this prototype (§10).
+Scaling note (mirror this as a code comment in `normalize.py`): the dedupe already keeps the derive call cheap, but past a few thousand distinct variants, chunk the list and move it, with the per-row stage-2 calls, to the Batch API (§10). Out of scope for this prototype.
 
 ### 4.3 Anomaly audit (`audit.py`)
 
@@ -117,6 +116,8 @@ Deterministic, computed over clean (non-anomalous) rows only. The benchmark answ
 
 - `website_count`, `mean_opt_in_rate`, `median_opt_in_rate`, `min_opt_in_rate`, `max_opt_in_rate` — median leads because per-segment samples can be small and skewed; all plain arithmetic on the segment's opt-in rates. These five are shared by every row in the segment.
 - `top_performer_ids` — computed per row: the segment rows whose `opt_in_rate` beats this row's, ranked descending by rate (highest first), capped at three. (Top quartile is the textbook cut for "top performers", but quartiles need bigger segments; up-to-three-above-you is the small-n version, and it guarantees every listed performer actually outperforms the row.) The segment leader gets an empty list — itself the diagnosis: nothing to imitate, maintain and test. To keep the benchmark compact, the field carries only IDs; the performers' rates and `cleaned_setup_notes` are looked up from the data and joined into the insight facts at stage 5.
+
+A deterministic guard enforces §4.2's "avoid segments too thin to benchmark" steer, which otherwise lives only in the pass-A prompt: any non-`other` segment with fewer than a small threshold of clean rows (e.g. three) is flagged low-confidence in its benchmark output rather than silently trusted — a mean over two rows is not a peer benchmark. This is where the model's segment-count decision (§4.2) becomes checkable by code instead of merely hoped for.
 
 The per-row `facts` handed to the insight LLM (§4.5), for clean rows only — exactly what the model sees:
 
@@ -146,7 +147,7 @@ The per-row `facts` handed to the insight LLM (§4.5), for clean rows only — e
 
 (Benchmark numbers and segment names illustrative — the LLM derives the actual names, §4.2.) `cleaned_setup_notes` lets the recommendation reference the site's actual setup ("your sitewide 5s popup with no exit intent"); `top_performers` grounds the "what to change" claim in what better-converting peers actually run ("the top performers in your segment use exit intent"). The grounding check in §4.6 treats the serialized facts as the universe of permitted numbers, so every number the model may cite — including the performers' rates — is here.
 
-Scaling note (mirror this as a code comment in `benchmark.py`): joining up to three performers' notes into every facts dict grows each insight prompt, and the same top performer's notes are repeated across many rows' prompts — a segment's leaders appear in nearly every member's facts. Negligible at this scale; for large real-world data, cut the duplication by summarizing each segment's top setups once and referencing that shared summary from every row's facts, and move the per-row insight calls to the OpenAI Batch API alongside the stage-2 calls (§4.2's note). Out of scope for this prototype (§10).
+Scaling note (mirror this as a code comment in `benchmark.py`): joining up to three performers' notes into every facts dict grows each insight prompt, and the same top performer's notes are repeated across many rows' prompts — a segment's leaders appear in nearly every member's facts. Negligible at this scale; for large real-world data, cut the duplication by summarizing each segment's top setups once and referencing that shared summary from every row's facts, and move the per-row insight calls to the Batch API alongside the stage-2 calls (§10). Out of scope for this prototype.
 
 ### 4.5 Insight generator (`insights.py`)
 
@@ -283,4 +284,4 @@ Verified against the committed sample dataset; the specific rows cited are the s
 
 ## 10. Out of scope
 
-Real lift measurement, persistence, auth, concurrency, batching API, web UI, and multi-metric support. Start narrow: one dataset, one metric, one decision per website, done well.
+Real lift measurement, persistence, auth, concurrency, web UI, multi-metric support, and the OpenAI Batch API (24h completion window, ~50% discount) — the deferral point for the batched stage-2 and insight calls described in the §4.2 and §4.4 scaling notes. Start narrow: one dataset, one metric, one decision per website, done well.
