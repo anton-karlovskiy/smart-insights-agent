@@ -201,3 +201,17 @@ I'm thinking of an edge case where the current row is the very top performer. In
 
 I think @SPEC.md is mostly done. I reviewed it manually and it looks good overall.
 Can you review it again to make sure that there are no mistakes or errors before I start vibe coding?
+
+## 22.
+
+## Underlying principles
+
+The spec workflow follows the general context-engineering rules:
+
+- **Concise & precise** — describe the task clearly, no unnecessary fluff.
+- **No unnecessary context** — only include files and docs you *know* are relevant.
+- **Think, plan, prompt** — plan upfront instead of fixing via follow-ups; use Plan mode for anything non-trivial.
+- **Don't "test" the AI** — if you know a pitfall (like the better-auth schema requirement), state it *and* the expected solution up front.
+- **You are in control** — you steer the AI and verify its output.
+
+Can you review @SPEC.md with the above principles?
