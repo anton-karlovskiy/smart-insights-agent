@@ -94,7 +94,7 @@ Two steps — a deterministic lookup, then an LLM cross-check:
    Unknown values map to `other` with a flag rather than crashing.
 
    Clean-row counts per segment (all 30 rows get a segment, but the five anomalous rows — 3, 4, 8, 12, 20 — are excluded from benchmark membership): ecommerce_retail 9, saas_b2b 5, media_content 5, local_services 3, professional_services 2, education 1. These counts double as a sanity check during the build.
-2. **LLM cross-check.** The stage-2 preprocessing call reads `reported_industry` and the row's `cleaned_setup_notes` and returns the final `canonical_industry_segment`, using the lookup result as a strong prior. When the notes plainly describe a different business than the label (ID 3: labeled SaaS, notes describe selling baking goods), it overrides the mapping and records the disagreement in `edge_case_anomaly`. The prompt is conservative — override only on a clear contradiction, so correct rows are not churned.
+2. **LLM cross-check.** The stage-2 preprocessing call reads `reported_industry` and the row's `cleaned_setup_notes` and returns the final `canonical_industry_segment`, using the lookup result as a strong prior. When the notes plainly describe a different business than `reported_industry` (ID 3: reported SaaS, notes describe selling baking goods), it overrides the mapping and records the disagreement in `edge_case_anomaly`. The prompt is conservative — override only on a clear contradiction, so correct rows are not churned.
 
 Exact segment membership is an implementation call. The tests pin the important cases (ID 3 ends up in ecommerce, all the ecommerce spelling variants land together).
 
@@ -103,7 +103,7 @@ Exact segment membership is an implementation call. The tests pin the important 
 Two independent anomaly signals gate a row out of benchmarking and insight. A row is **anomalous** when either fires, and per the §4.1 invariant its `benchmark` and `insight` are both `None`.
 
 1. **`impossible_metric_anomaly`** (this stage, pure Python): `opt_in_rate < 0` or `> 100`. A plain range check, nothing to infer. Catches ID 8 (105.0) and ID 20 (-0.5).
-2. **`edge_case_anomaly`** (produced upstream in stage 2, LLM): a one-line explanation set when `reported_industry` / `opt_in_rate` / `cleaned_setup_notes` disagree in a way no rule can catch — a rate that measures nothing because there is no capture field (ID 12), an install recording zero impressions against real traffic (ID 4), a form dropping leads into a dead webhook (ID 20), a label that contradicts the notes (ID 3). `None` when the row is internally consistent.
+2. **`edge_case_anomaly`** (produced upstream in stage 2, LLM): a one-line explanation set when `reported_industry` / `opt_in_rate` / `cleaned_setup_notes` disagree in a way no rule can catch — a rate that measures nothing because there is no capture field (ID 12), an install recording zero impressions against real traffic (ID 4), a form dropping leads into a dead webhook (ID 20), a `reported_industry` that contradicts the notes (ID 3). `None` when the row is internally consistent.
 
 The two can co-occur (ID 20 is both). Nothing here assigns a recommendation: an anomalous row carries only its flag and, where set, the explanation — and that explanation is the "fix your setup" message for a broken row.
 
@@ -258,7 +258,7 @@ Each milestone should leave the repo runnable and end with a commit. Rough time 
 
 - [ ] `python -m smart_insights run` completes on all 30 rows with a valid `out/insights.json`.
 - [ ] IDs 8, 20, 4, 12, 3 are flagged anomalous (`impossible_metric_anomaly` or `edge_case_anomaly`), excluded from every benchmark, and carry `insight: null`.
-- [ ] ID 3's `canonical_industry_segment` is `ecommerce_retail` and its `edge_case_anomaly` records the label-vs-notes contradiction.
+- [ ] ID 3's `canonical_industry_segment` is `ecommerce_retail` and its `edge_case_anomaly` records the reported-industry-vs-notes contradiction.
 - [ ] ID 12's `edge_case_anomaly` explains the rate measures the wrong thing (no capture field); it is not benchmarked or scored on 0.02%.
 - [ ] No recommendation contains a number that is not in that row's facts (verified by `evaluate`).
 - [ ] `python -m smart_insights evaluate --insights examples/sample_insights.json` passes and exits 0.
