@@ -1,0 +1,1225 @@
+[
+  {
+    "id": 1,
+    "website_url": "https://www.luxe-threads.co",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 2.4,
+    "cleaned_setup_notes": [
+      "Runs a sitewide overlay popup on a 5s delay, no exit intent, template #4.",
+      "Offers 10% off."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19,
+        27
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      },
+      {
+        "id": 27,
+        "opt_in_rate": 3.0,
+        "cleaned_setup_notes": [
+          "Overlay popup on a 5s delay, no exit intent, template #4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your sitewide 5s overlay converts at 2.4%, below your ecommerce segment's 2.7% median. The segment leader converts at 4.1% with an exit-intent popup on the cart page and a 15% discount, versus your timed popup with 10% off. Add OptinMonster's exit-intent trigger to your overlay so it fires when shoppers move to leave instead of on a fixed delay.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 2,
+    "website_url": "https://SaaSmetrics-hub.io",
+    "canonical_industry_segment": "software_b2b",
+    "opt_in_rate": 1.1,
+    "cleaned_setup_notes": [
+      "Uses a sidebar widget on blog posts only.",
+      "Asset: download a free ebook.",
+      "No triggers, just static."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 1.15,
+      "median_opt_in_rate": 1.0,
+      "min_opt_in_rate": 0.5,
+      "max_opt_in_rate": 2.1,
+      "canonical_industry_segment": "software_b2b",
+      "top_performer_ids": [
+        28
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 28,
+        "opt_in_rate": 2.1,
+        "cleaned_setup_notes": [
+          "Timed slide-in (7s) offering a free 14-day trial.",
+          "Direct input field for email only."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your static sidebar ebook widget converts at 1.1%, just above the software segment's 1.0% median. The segment leader reaches 2.1% with a timed slide-in (7s) offering a free 14-day trial and a single email field. Replace your trigger-less sidebar widget with OptinMonster's timed slide-in so the ebook offer actively appears while readers are engaged.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 3,
+    "website_url": "https://www.bobsbakingworld.com",
+    "canonical_industry_segment": "software_b2b",
+    "opt_in_rate": 3.8,
+    "cleaned_setup_notes": [
+      "Sells premium baking sheets and silicone molds.",
+      "Exit-intent coupon code popup active on the checkout page."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": "Its reported_industry is SaaS while the notes describe selling premium baking sheets and silicone molds, so the notes contradict the field.",
+    "benchmark": null,
+    "top_performers": null,
+    "insight": null,
+    "status": "ok"
+  },
+  {
+    "id": 4,
+    "website_url": "https://fitlife-academy.net",
+    "canonical_industry_segment": "other",
+    "opt_in_rate": 0.0,
+    "cleaned_setup_notes": [
+      "Script installed via manual header injection.",
+      "0 impressions recorded this month despite 15k unique visitors.",
+      "Generic newsletter signup slide-in."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": "It shows an opt_in_rate of 0.0 with 15k unique visitors and zero impressions recorded, meaning the script installed via manual header injection is not firing.",
+    "benchmark": null,
+    "top_performers": null,
+    "insight": null,
+    "status": "ok"
+  },
+  {
+    "id": 5,
+    "website_url": "https://www.quicktech-reviews.com",
+    "canonical_industry_segment": "media_content",
+    "opt_in_rate": 5.2,
+    "cleaned_setup_notes": [
+      "Scroll trigger at 50% on tech news articles.",
+      "Lightbox popup offering a weekly digest.",
+      "Template modified heavily with custom CSS."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 5.15,
+      "median_opt_in_rate": 5.0,
+      "min_opt_in_rate": 1.9,
+      "max_opt_in_rate": 8.7,
+      "canonical_industry_segment": "media_content",
+      "top_performer_ids": [
+        22
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 22,
+        "opt_in_rate": 8.7,
+        "cleaned_setup_notes": [
+          "Exit-intent popup showing a funny meme, targeting returning visitors only.",
+          "Highly specific audience segment."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 50% scroll-trigger lightbox converts at 5.2%, just above the media segment's 5.0% median. The segment leader hits 8.7% with an exit-intent popup shown only to returning visitors. Add OptinMonster's exit-intent trigger with returning-visitor targeting on top of your weekly digest offer.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 6,
+    "website_url": "https://apex-legal-consulting.com",
+    "canonical_industry_segment": "professional_services",
+    "opt_in_rate": 0.8,
+    "cleaned_setup_notes": [
+      "Standard welcome mat covering the whole page instantly on load.",
+      "Free 15-minute consultation offer.",
+      "High bounce rate reported in GA4."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 2,
+      "mean_opt_in_rate": 0.6,
+      "median_opt_in_rate": 0.6,
+      "min_opt_in_rate": 0.4,
+      "max_opt_in_rate": 0.8,
+      "canonical_industry_segment": "professional_services",
+      "top_performer_ids": [],
+      "low_confidence": true
+    },
+    "top_performers": [],
+    "insight": {
+      "recommendation": "Your instant welcome mat converts at 0.8%, the best in your professional-services segment (median 0.6% — only two clean sites, so treat this benchmark as low-confidence). There is no one to imitate: keep the mat and its free 15-minute consultation, and A/B test one variation — a short delay before it covers the page, since your notes report a high bounce rate in GA4.",
+      "confidence": "low"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 7,
+    "website_url": "https://www.cozycoffee-roasters.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 4.1,
+    "cleaned_setup_notes": [
+      "Exit intent on the cart page only.",
+      "15% discount code.",
+      "Very high conversion but low overall volume."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [],
+      "low_confidence": false
+    },
+    "top_performers": [],
+    "insight": {
+      "recommendation": "Your exit-intent campaign on the cart page converts at 4.1%, the best of the nine clean ecommerce sites (median 2.7%). Nothing to imitate — keep the setup that is winning and A/B test one variation of your 15% discount code offer to lift the low overall volume your notes mention.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 8,
+    "website_url": "https://cloudsync-erp.com",
+    "canonical_industry_segment": "software_b2b",
+    "opt_in_rate": 105.0,
+    "cleaned_setup_notes": [
+      "Enterprise demo request form.",
+      "Full-screen takeover triggered immediately on the homepage.",
+      "Testing multi-step form fields."
+    ],
+    "impossible_metric_anomaly": true,
+    "edge_case_anomaly": null,
+    "benchmark": null,
+    "top_performers": null,
+    "insight": null,
+    "status": "ok"
+  },
+  {
+    "id": 9,
+    "website_url": "https://Wanderlust-travel-blog.com",
+    "canonical_industry_segment": "media_content",
+    "opt_in_rate": 1.9,
+    "cleaned_setup_notes": [
+      "Inline form at the bottom of long-form articles.",
+      "Subscribes readers to a travel tips newsletter."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 5.15,
+      "median_opt_in_rate": 5.0,
+      "min_opt_in_rate": 1.9,
+      "max_opt_in_rate": 8.7,
+      "canonical_industry_segment": "media_content",
+      "top_performer_ids": [
+        22,
+        5,
+        17
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 22,
+        "opt_in_rate": 8.7,
+        "cleaned_setup_notes": [
+          "Exit-intent popup showing a funny meme, targeting returning visitors only.",
+          "Highly specific audience segment."
+        ]
+      },
+      {
+        "id": 5,
+        "opt_in_rate": 5.2,
+        "cleaned_setup_notes": [
+          "Scroll trigger at 50% on tech news articles.",
+          "Lightbox popup offering a weekly digest.",
+          "Template modified heavily with custom CSS."
+        ]
+      },
+      {
+        "id": 17,
+        "opt_in_rate": 4.8,
+        "cleaned_setup_notes": [
+          "Exit-intent popup on all organic search landing pages.",
+          "Free seed-planting calendar download."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your inline form at the bottom of long-form articles converts at 1.9%, well below the media segment's 5.0% median. Two of the three top performers use exit-intent popups (8.7% and 4.8%). Move your travel-tips newsletter offer into an OptinMonster exit-intent popup instead of relying on readers reaching the article footer.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 10,
+    "website_url": "https://www.petparadise-shop.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 2.9,
+    "cleaned_setup_notes": [
+      "Sitewide popup on a 10s delay.",
+      "Cookie duration set to 365 days.",
+      "Asks for email and phone number on step 1."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19,
+        27
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      },
+      {
+        "id": 27,
+        "opt_in_rate": 3.0,
+        "cleaned_setup_notes": [
+          "Overlay popup on a 5s delay, no exit intent, template #4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 10s sitewide popup converts at 2.9%, just above the ecommerce median of 2.7%. The segment leader reaches 4.1% with a simple 15% discount exit-intent popup on the cart page only. Cut your popup's step 1 down to a single email field — dropping the phone-number ask removes friction from every optin.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 11,
+    "website_url": "https://learncodingtoday.edu",
+    "canonical_industry_segment": "other",
+    "opt_in_rate": 6.4,
+    "cleaned_setup_notes": [
+      "2-step choice campaign on the course catalog page.",
+      "'Are you a beginner or pro?' clicks trigger custom targeted lead forms."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 2,
+      "mean_opt_in_rate": 4.75,
+      "median_opt_in_rate": 4.75,
+      "min_opt_in_rate": 3.1,
+      "max_opt_in_rate": 6.4,
+      "canonical_industry_segment": "other",
+      "top_performer_ids": [],
+      "low_confidence": false
+    },
+    "top_performers": [],
+    "insight": {
+      "recommendation": "Your 2-step choice campaign on the course catalog converts at 6.4%, the best of the two clean sites in your segment (median 4.75%). There is no peer to imitate: keep the campaign and A/B test one variation of the 'Are you a beginner or pro?' question wording.",
+      "confidence": "low"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 12,
+    "website_url": "https://www.greenvalley-organic.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 0.02,
+    "cleaned_setup_notes": [
+      "Floating bar at the top of the page with a countdown timer for free shipping.",
+      "No email input field, just a button linking to the shop page."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": "Its opt_in_rate of 0.02 is meaningless because the notes say there is no email input field, just a button linking to the shop page, so the campaign is not capturing opt-ins at all.",
+    "benchmark": null,
+    "top_performers": null,
+    "insight": null,
+    "status": "ok"
+  },
+  {
+    "id": 13,
+    "website_url": "https://solarpower-installers.net",
+    "canonical_industry_segment": "local_services",
+    "opt_in_rate": 1.5,
+    "cleaned_setup_notes": [
+      "Slide-in box at the bottom right, triggering after 30 seconds on site.",
+      "Quote request form."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 2.1,
+      "median_opt_in_rate": 1.45,
+      "min_opt_in_rate": 1.2,
+      "max_opt_in_rate": 4.3,
+      "canonical_industry_segment": "local_services",
+      "top_performer_ids": [
+        23
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 23,
+        "opt_in_rate": 4.3,
+        "cleaned_setup_notes": [
+          "Slide-in box after 60% page scroll on the schedule page.",
+          "Offers a free first class pass."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 30-second slide-in quote form converts at 1.5%, near the local-services median of 1.45%. The top performer converts at 4.3% with a slide-in triggered at 60% page scroll on its highest-intent page, offering a free first class. Switch your slide-in from the 30-second timer to OptinMonster's scroll-depth trigger on your service pages.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 14,
+    "website_url": "https://Thecrypto-daily.io",
+    "canonical_industry_segment": "other",
+    "opt_in_rate": 3.1,
+    "cleaned_setup_notes": [
+      "Timed popup (3s) on the homepage only.",
+      "Offers a 'Top 5 Crypto Picks' PDF.",
+      "No mobile optimization enabled."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 2,
+      "mean_opt_in_rate": 4.75,
+      "median_opt_in_rate": 4.75,
+      "min_opt_in_rate": 3.1,
+      "max_opt_in_rate": 6.4,
+      "canonical_industry_segment": "other",
+      "top_performer_ids": [
+        11
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 11,
+        "opt_in_rate": 6.4,
+        "cleaned_setup_notes": [
+          "2-step choice campaign on the course catalog page.",
+          "'Are you a beginner or pro?' clicks trigger custom targeted lead forms."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 3s timed popup on the homepage converts at 3.1%, below your segment's 4.75% median. The top performer converts at 6.4% with a 2-step choice campaign that routes clicks to targeted lead forms. Turn your 'Top 5 Crypto Picks' PDF offer into an OptinMonster 2-step optin so visitors self-select before seeing the form.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 15,
+    "website_url": "https://www.boutique-vibe.fr",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 2.2,
+    "cleaned_setup_notes": [
+      "Overlay popup on a 5s delay, no exit intent, template #4.",
+      "Written entirely in French, targeting EU users."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19,
+        27
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      },
+      {
+        "id": 27,
+        "opt_in_rate": 3.0,
+        "cleaned_setup_notes": [
+          "Overlay popup on a 5s delay, no exit intent, template #4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 5s overlay popup (template #4) converts at 2.2%, below the ecommerce median of 2.7%. The segment leader converts at 4.1% with an exit-intent popup on the cart page and a 15% discount code. Add OptinMonster's exit-intent trigger to your French-language campaign so it fires on leave intent rather than a fixed delay.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 16,
+    "website_url": "https://saas-hr-pro.com",
+    "canonical_industry_segment": "software_b2b",
+    "opt_in_rate": 0.5,
+    "cleaned_setup_notes": [
+      "Welcome mat on the landing page.",
+      "Text says: 'Join our weekly HR newsletter.'",
+      "Form asks for Company Name, Employee Count, Job Title, and Email."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 1.15,
+      "median_opt_in_rate": 1.0,
+      "min_opt_in_rate": 0.5,
+      "max_opt_in_rate": 2.1,
+      "canonical_industry_segment": "software_b2b",
+      "top_performer_ids": [
+        28,
+        2,
+        24
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 28,
+        "opt_in_rate": 2.1,
+        "cleaned_setup_notes": [
+          "Timed slide-in (7s) offering a free 14-day trial.",
+          "Direct input field for email only."
+        ]
+      },
+      {
+        "id": 2,
+        "opt_in_rate": 1.1,
+        "cleaned_setup_notes": [
+          "Uses a sidebar widget on blog posts only.",
+          "Asset: download a free ebook.",
+          "No triggers, just static."
+        ]
+      },
+      {
+        "id": 24,
+        "opt_in_rate": 0.9,
+        "cleaned_setup_notes": [
+          "Inline whitepaper download form on technical documentation pages.",
+          "Asks for a business email.",
+          "CAPTCHA enabled."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your welcome mat converts at 0.5%, below the software segment's 1.0% median and last among its four clean sites. The leader gets 2.1% with a timed slide-in and a single email field, versus your four required fields (Company Name, Employee Count, Job Title, Email). Cut the mat's form down to the email field only.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 17,
+    "website_url": "https://www.urban-gardening-hub.com",
+    "canonical_industry_segment": "media_content",
+    "opt_in_rate": 4.8,
+    "cleaned_setup_notes": [
+      "Exit-intent popup on all organic search landing pages.",
+      "Free seed-planting calendar download."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 5.15,
+      "median_opt_in_rate": 5.0,
+      "min_opt_in_rate": 1.9,
+      "max_opt_in_rate": 8.7,
+      "canonical_industry_segment": "media_content",
+      "top_performer_ids": [
+        22,
+        5
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 22,
+        "opt_in_rate": 8.7,
+        "cleaned_setup_notes": [
+          "Exit-intent popup showing a funny meme, targeting returning visitors only.",
+          "Highly specific audience segment."
+        ]
+      },
+      {
+        "id": 5,
+        "opt_in_rate": 5.2,
+        "cleaned_setup_notes": [
+          "Scroll trigger at 50% on tech news articles.",
+          "Lightbox popup offering a weekly digest.",
+          "Template modified heavily with custom CSS."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your exit-intent popup on organic landing pages converts at 4.8%, just under the media segment's 5.0% median. The leader reaches 8.7% by showing its exit-intent popup to returning visitors only. Add OptinMonster's returning-visitor display rule to your seed-planting calendar campaign.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 18,
+    "website_url": "https://dentalcare-group.com",
+    "canonical_industry_segment": "local_services",
+    "opt_in_rate": 1.2,
+    "cleaned_setup_notes": [
+      "Floating bar at the bottom of the mobile view.",
+      "'Call Now for Appointment' button.",
+      "Also contains an email field."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 2.1,
+      "median_opt_in_rate": 1.45,
+      "min_opt_in_rate": 1.2,
+      "max_opt_in_rate": 4.3,
+      "canonical_industry_segment": "local_services",
+      "top_performer_ids": [
+        23,
+        13,
+        26
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 23,
+        "opt_in_rate": 4.3,
+        "cleaned_setup_notes": [
+          "Slide-in box after 60% page scroll on the schedule page.",
+          "Offers a free first class pass."
+        ]
+      },
+      {
+        "id": 13,
+        "opt_in_rate": 1.5,
+        "cleaned_setup_notes": [
+          "Slide-in box at the bottom right, triggering after 30 seconds on site.",
+          "Quote request form."
+        ]
+      },
+      {
+        "id": 26,
+        "opt_in_rate": 1.4,
+        "cleaned_setup_notes": [
+          "Full-screen welcome mat on the homepage.",
+          "Form fields: Name, Phone, Email, Desired Budget, Timeline to buy."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your mobile floating bar mixes a 'Call Now' button with an email field and converts at 1.2%, below the local-services median of 1.45%. The top performer converts at 4.3% with a scroll-triggered slide-in on its highest-intent page offering a free first class pass. Give email capture its own OptinMonster slide-in campaign so the floating bar keeps a single job.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 19,
+    "website_url": "https://www.vintage-vinyls.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 3.5,
+    "cleaned_setup_notes": [
+      "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your MonsterLink click-trigger lightbox converts at 3.5%, well above the ecommerce median of 2.7%; only one site does better, at 4.1%, with an exit-intent popup on its cart page and a 15% discount code. Add an exit-intent campaign on your cart flow to catch the shoppers who never click the 'Unlock Secret Stash' link.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 20,
+    "website_url": "https://marketing-mastery-consults.com",
+    "canonical_industry_segment": "professional_services",
+    "opt_in_rate": -0.5,
+    "cleaned_setup_notes": [
+      "Sidebar contact widget on desktop.",
+      "Form submissions drop leads into a dead webhook URL."
+    ],
+    "impossible_metric_anomaly": true,
+    "edge_case_anomaly": "Its form submissions drop leads into a dead webhook URL, so leads may be submitting and simply vanishing.",
+    "benchmark": null,
+    "top_performers": null,
+    "insight": null,
+    "status": "ok"
+  },
+  {
+    "id": 21,
+    "website_url": "https://www.kidz-clothing.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 1.8,
+    "cleaned_setup_notes": [
+      "Sitewide popup on a 2s delay.",
+      "Standard 'Join our mailing list for news' message.",
+      "No coupon or lead magnet offered."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19,
+        27
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      },
+      {
+        "id": 27,
+        "opt_in_rate": 3.0,
+        "cleaned_setup_notes": [
+          "Overlay popup on a 5s delay, no exit intent, template #4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 2s sitewide popup converts at 1.8%, below the ecommerce median of 2.7%, and offers no incentive — just 'join our mailing list'. The segment leader converts at 4.1% with a 15% discount code behind an exit-intent popup. Put a concrete discount coupon behind your popup instead of the plain mailing-list ask.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 22,
+    "website_url": "https://subscribestar-creators.net",
+    "canonical_industry_segment": "media_content",
+    "opt_in_rate": 8.7,
+    "cleaned_setup_notes": [
+      "Exit-intent popup showing a funny meme, targeting returning visitors only.",
+      "Highly specific audience segment."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 5.15,
+      "median_opt_in_rate": 5.0,
+      "min_opt_in_rate": 1.9,
+      "max_opt_in_rate": 8.7,
+      "canonical_industry_segment": "media_content",
+      "top_performer_ids": [],
+      "low_confidence": false
+    },
+    "top_performers": [],
+    "insight": {
+      "recommendation": "Your exit-intent meme popup for returning visitors converts at 8.7%, the best of the four clean media sites (median 5.0%). Nothing to imitate: keep the campaign and A/B test one variation of the meme creative on the same returning-visitor rule.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 23,
+    "website_url": "https://www.zenspace-yoga.com",
+    "canonical_industry_segment": "local_services",
+    "opt_in_rate": 4.3,
+    "cleaned_setup_notes": [
+      "Slide-in box after 60% page scroll on the schedule page.",
+      "Offers a free first class pass."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 2.1,
+      "median_opt_in_rate": 1.45,
+      "min_opt_in_rate": 1.2,
+      "max_opt_in_rate": 4.3,
+      "canonical_industry_segment": "local_services",
+      "top_performer_ids": [],
+      "low_confidence": false
+    },
+    "top_performers": [],
+    "insight": {
+      "recommendation": "Your slide-in at 60% page scroll on the schedule page converts at 4.3%, the best of the four clean local-services sites (median 1.45%). Keep it and A/B test one variation: a different scroll depth for the same free first-class-pass offer.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 24,
+    "website_url": "https://fintech-secure-api.io",
+    "canonical_industry_segment": "software_b2b",
+    "opt_in_rate": 0.9,
+    "cleaned_setup_notes": [
+      "Inline whitepaper download form on technical documentation pages.",
+      "Asks for a business email.",
+      "CAPTCHA enabled."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 1.15,
+      "median_opt_in_rate": 1.0,
+      "min_opt_in_rate": 0.5,
+      "max_opt_in_rate": 2.1,
+      "canonical_industry_segment": "software_b2b",
+      "top_performer_ids": [
+        28,
+        2
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 28,
+        "opt_in_rate": 2.1,
+        "cleaned_setup_notes": [
+          "Timed slide-in (7s) offering a free 14-day trial.",
+          "Direct input field for email only."
+        ]
+      },
+      {
+        "id": 2,
+        "opt_in_rate": 1.1,
+        "cleaned_setup_notes": [
+          "Uses a sidebar widget on blog posts only.",
+          "Asset: download a free ebook.",
+          "No triggers, just static."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your inline whitepaper form on documentation pages converts at 0.9%, just below the software segment's 1.0% median. The leader converts at 2.1% with a timed slide-in (7s) and a single email field. Add OptinMonster's timed slide-in on those documentation pages instead of relying on the static inline form.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 25,
+    "website_url": "https://www.gourmet-meal-kits.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 2.7,
+    "cleaned_setup_notes": [
+      "Spin-to-win gamified wheel popup triggered after 15 seconds on site.",
+      "Offers various coupon prizes (5% to 25% off)."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19,
+        27
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      },
+      {
+        "id": 27,
+        "opt_in_rate": 3.0,
+        "cleaned_setup_notes": [
+          "Overlay popup on a 5s delay, no exit intent, template #4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your spin-to-win wheel converts at 2.7%, exactly the ecommerce median. Two of the three sites above you use intent-based triggers — exit intent (4.1%) and a MonsterLink click trigger (3.5%) — while your wheel fires on a 15-second timer. Trigger the wheel with OptinMonster's exit-intent rule instead of the timer.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 26,
+    "website_url": "https://realestate-pros-agents.com",
+    "canonical_industry_segment": "local_services",
+    "opt_in_rate": 1.4,
+    "cleaned_setup_notes": [
+      "Full-screen welcome mat on the homepage.",
+      "Form fields: Name, Phone, Email, Desired Budget, Timeline to buy."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 2.1,
+      "median_opt_in_rate": 1.45,
+      "min_opt_in_rate": 1.2,
+      "max_opt_in_rate": 4.3,
+      "canonical_industry_segment": "local_services",
+      "top_performer_ids": [
+        23,
+        13
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 23,
+        "opt_in_rate": 4.3,
+        "cleaned_setup_notes": [
+          "Slide-in box after 60% page scroll on the schedule page.",
+          "Offers a free first class pass."
+        ]
+      },
+      {
+        "id": 13,
+        "opt_in_rate": 1.5,
+        "cleaned_setup_notes": [
+          "Slide-in box at the bottom right, triggering after 30 seconds on site.",
+          "Quote request form."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your full-screen welcome mat converts at 1.4%, just below the local-services median of 1.45%, and asks for five fields (Name, Phone, Email, Desired Budget, Timeline). The top performer converts at 4.3% with a low-friction slide-in offering a free first class. Cut the mat's form to name and email so the first ask is small.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 27,
+    "website_url": "https://www.thetrendystore.com",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 3.0,
+    "cleaned_setup_notes": [
+      "Overlay popup on a 5s delay, no exit intent, template #4."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your 5s overlay popup (template #4) converts at 3.0%, above the ecommerce median of 2.7%. Both sites above you use intent-based triggers: exit intent at 4.1% and a MonsterLink click trigger at 3.5%. Swap the fixed 5-second delay for OptinMonster's exit-intent trigger.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 28,
+    "website_url": "https://SaaS-flow-analytics.com",
+    "canonical_industry_segment": "software_b2b",
+    "opt_in_rate": 2.1,
+    "cleaned_setup_notes": [
+      "Timed slide-in (7s) offering a free 14-day trial.",
+      "Direct input field for email only."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 4,
+      "mean_opt_in_rate": 1.15,
+      "median_opt_in_rate": 1.0,
+      "min_opt_in_rate": 0.5,
+      "max_opt_in_rate": 2.1,
+      "canonical_industry_segment": "software_b2b",
+      "top_performer_ids": [],
+      "low_confidence": false
+    },
+    "top_performers": [],
+    "insight": {
+      "recommendation": "Your timed slide-in offering a free 14-day trial converts at 2.1%, the best of the four clean software sites (median 1.0%). Nothing to imitate: keep the campaign and A/B test one variation of the 7-second delay against your current setup.",
+      "confidence": "medium"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 29,
+    "website_url": "https://www.handcrafted-leather.it",
+    "canonical_industry_segment": "ecommerce_retail",
+    "opt_in_rate": 1.6,
+    "cleaned_setup_notes": [
+      "Exit-intent lightbox on product pages.",
+      "Offers a free leather care guide PDF instead of a discount code."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 9,
+      "mean_opt_in_rate": 2.69,
+      "median_opt_in_rate": 2.7,
+      "min_opt_in_rate": 1.6,
+      "max_opt_in_rate": 4.1,
+      "canonical_industry_segment": "ecommerce_retail",
+      "top_performer_ids": [
+        7,
+        19,
+        27
+      ],
+      "low_confidence": false
+    },
+    "top_performers": [
+      {
+        "id": 7,
+        "opt_in_rate": 4.1,
+        "cleaned_setup_notes": [
+          "Exit intent on the cart page only.",
+          "15% discount code.",
+          "Very high conversion but low overall volume."
+        ]
+      },
+      {
+        "id": 19,
+        "opt_in_rate": 3.5,
+        "cleaned_setup_notes": [
+          "MonsterLink trigger setup: users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+        ]
+      },
+      {
+        "id": 27,
+        "opt_in_rate": 3.0,
+        "cleaned_setup_notes": [
+          "Overlay popup on a 5s delay, no exit intent, template #4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your exit-intent lightbox on product pages converts at 1.6%, the lowest of the nine clean ecommerce sites (median 2.7%). The trigger is right; the leader converts at 4.1% offering a 15% discount code where you offer a care-guide PDF. A/B test a discount code against your PDF as the exit offer.",
+      "confidence": "high"
+    },
+    "status": "ok",
+    "status_reason": null
+  },
+  {
+    "id": 30,
+    "website_url": "https://security-compliance-audit.org",
+    "canonical_industry_segment": "professional_services",
+    "opt_in_rate": 0.4,
+    "cleaned_setup_notes": [
+      "Static inline box embedded inside the page footer.",
+      "High-friction form with 6 required input fields."
+    ],
+    "impossible_metric_anomaly": false,
+    "edge_case_anomaly": null,
+    "benchmark": {
+      "website_count": 2,
+      "mean_opt_in_rate": 0.6,
+      "median_opt_in_rate": 0.6,
+      "min_opt_in_rate": 0.4,
+      "max_opt_in_rate": 0.8,
+      "canonical_industry_segment": "professional_services",
+      "top_performer_ids": [
+        6
+      ],
+      "low_confidence": true
+    },
+    "top_performers": [
+      {
+        "id": 6,
+        "opt_in_rate": 0.8,
+        "cleaned_setup_notes": [
+          "Standard welcome mat covering the whole page instantly on load.",
+          "Free 15-minute consultation offer.",
+          "High bounce rate reported in GA4."
+        ]
+      }
+    ],
+    "insight": {
+      "recommendation": "Your footer-embedded inline box with six required fields converts at 0.4%, below your segment's 0.6% median (low-confidence — only two clean professional-services sites). The site above you converts at 0.8% with a welcome mat and a free 15-minute consultation offer. Replace the buried six-field footer box with an OptinMonster welcome mat.",
+      "confidence": "low"
+    },
+    "status": "ok",
+    "status_reason": null
+  }
+]
