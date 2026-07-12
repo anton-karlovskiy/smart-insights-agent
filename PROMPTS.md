@@ -225,3 +225,9 @@ I will be working on 1. now.
 
 Can you summarize 2. and 3. from this whole session as an md file into G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\deliverables?
 Here, you don't have to make a loom video but you can prepare some transcript.
+
+## 24.
+
+Please develop this project making meaningful commits in the process.
+At the end of each milestone of the build order, you may want to review it and fix any mistakes or errors before go to the next milestone.
+Once completed, you will want to run a thorough review with the whole project context in mind.
