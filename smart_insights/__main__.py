@@ -45,6 +45,12 @@ def build_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: list[str] | None = None) -> int:
+    # LLM prose can contain characters a cp1252 Windows console cannot encode
+    # (e.g. U+2011 non-breaking hyphen); degrade to '?' instead of crashing.
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(errors="replace")
+
     args = build_parser().parse_args(argv)
 
     if args.command == "preprocess":
