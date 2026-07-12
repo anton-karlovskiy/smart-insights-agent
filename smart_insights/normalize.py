@@ -39,9 +39,17 @@ def validate_segment_map(
     problem listed, so a retry prompt can carry the full error."""
     mapping = {pair.variant: pair.segment for pair in response.mapping}
     segments = set(response.segments)
-    folded_keys = {_fold(k): v for k, v in mapping.items()}
 
     problems: list[str] = []
+    folded_keys: dict[str, str] = {}
+    for key, segment in mapping.items():
+        folded = _fold(key)
+        if folded in folded_keys and folded_keys[folded] != segment:
+            problems.append(
+                f"mapping keys that differ only in case/whitespace disagree "
+                f"on the segment for {key!r}"
+            )
+        folded_keys[folded] = segment
     for variant in variants:
         if _fold(variant) not in folded_keys:
             problems.append(f"variant {variant!r} is missing from the mapping")

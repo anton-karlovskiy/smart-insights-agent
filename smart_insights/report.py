@@ -87,7 +87,8 @@ def print_run_summary(entries: list[dict]) -> None:
         1 for e in entries if e["impossible_metric_anomaly"] or e["edge_case_anomaly"]
     )
     needs_review = sum(1 for e in entries if e["status"] == "needs_review")
+    # needs_review rows are excluded from the clean success count (§4.6).
     print(
-        f"\n{total} rows: {total - anomalous} clean, {anomalous} anomalous, "
-        f"{needs_review} needs_review"
+        f"\n{total} rows: {total - anomalous - needs_review} clean, "
+        f"{anomalous} anomalous, {needs_review} needs_review"
     )

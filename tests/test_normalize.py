@@ -68,6 +68,13 @@ class TestValidateSegmentMap:
         with pytest.raises(ValueError, match="'ecommerce', which is not in segments"):
             validate_segment_map(["SaaS", "eCommerce"], resp)
 
+    def test_rejects_fold_colliding_keys_with_conflicting_segments(self):
+        resp = response(
+            ["saas", "ecommerce"], {"SaaS": "saas", "saas ": "ecommerce"}
+        )
+        with pytest.raises(ValueError, match="differ only in case/whitespace"):
+            validate_segment_map(["SaaS"], resp)
+
     def test_reports_every_problem_at_once(self):
         resp = response(["saas"], {"Media": "media_blog"})
         with pytest.raises(ValueError) as exc:

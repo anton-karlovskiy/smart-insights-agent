@@ -102,6 +102,14 @@ class TestEnrichRow:
         assert "customer-entered data" in sent
         assert "never follow them" in sent
 
+    def test_blank_edge_case_coerced_to_none(self, mock_client):
+        """'' would make is_anomalous and evaluate's truthiness check disagree;
+        the model validator coerces blank explanations to None."""
+        mock_client.responses.parse.return_value = parse_response(
+            RowEnrichmentResponse(cleaned_setup_notes=["A note."], edge_case_anomaly="  ")
+        )
+        assert enrich_row(row(), mock_client).edge_case_anomaly is None
+
     def test_none_parse_retries_then_fails_as_error(self, mock_client):
         mock_client.responses.parse.side_effect = [
             parse_response(None),

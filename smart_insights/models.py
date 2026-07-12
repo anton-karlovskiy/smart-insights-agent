@@ -12,7 +12,7 @@ import json
 from pathlib import Path
 from typing import Literal
 
-from pydantic import BaseModel, TypeAdapter
+from pydantic import BaseModel, TypeAdapter, field_validator
 
 
 class RawRow(BaseModel):
@@ -66,6 +66,10 @@ class EnrichedRow(RawRow):
         """Anomalous rows get no benchmark and no insight (SPEC §4.1)."""
         return self.impossible_metric_anomaly or self.edge_case_anomaly is not None
 
+    _blank_anomaly_is_none = field_validator("edge_case_anomaly")(
+        lambda v: v if v and v.strip() else None
+    )
+
 
 # --- LLM response schemas (strict structured outputs) ---
 
@@ -90,6 +94,12 @@ class RowEnrichmentResponse(BaseModel):
 
     cleaned_setup_notes: list[str]
     edge_case_anomaly: str | None
+
+    # A blank explanation is no explanation: coerce to None so the anomaly
+    # gate (is_anomalous) and evaluate's truthiness check can never disagree.
+    _blank_anomaly_is_none = field_validator("edge_case_anomaly")(
+        lambda v: v if v and v.strip() else None
+    )
 
 
 # --- Stage 1: load & validate, fail loudly on malformed input ---

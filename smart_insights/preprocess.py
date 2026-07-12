@@ -187,10 +187,6 @@ def preprocess(
     variants = collect_variants(rows)
     print(f"pass A: deriving segment map from {len(variants)} distinct wordings...")
     segments, mapping = derive_segment_map(variants, client)
-    Path(segment_map_path).write_text(
-        json.dumps({"segments": segments, "mapping": mapping}, indent=2) + "\n",
-        encoding="utf-8",
-    )
     print(f"  {len(segments)} segments: {', '.join(segments)}")
     segment_by_id = apply_segment_map(rows, mapping)
 
@@ -209,6 +205,12 @@ def preprocess(
             )
         )
 
+    # Both artifacts are written together, after every call has succeeded,
+    # so a mid-run failure never leaves a new segment map beside stale rows.
+    Path(segment_map_path).write_text(
+        json.dumps({"segments": segments, "mapping": mapping}, indent=2) + "\n",
+        encoding="utf-8",
+    )
     dump_enriched_rows(enriched, out_path)
     print(f"wrote {out_path} and {segment_map_path}")
     return enriched
