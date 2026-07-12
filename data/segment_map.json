@@ -1,0 +1,36 @@
+{
+  "segments": [
+    "ecommerce_retail",
+    "software_b2b",
+    "media_content",
+    "professional_services",
+    "local_services",
+    "other"
+  ],
+  "mapping": {
+    "Agency": "professional_services",
+    "B2B Services": "professional_services",
+    "B2B Software": "software_b2b",
+    "Blog / Affiliate": "media_content",
+    "E-comm": "ecommerce_retail",
+    "E-commerce": "ecommerce_retail",
+    "eCommerce": "ecommerce_retail",
+    "Education": "other",
+    "Entertainment": "media_content",
+    "Finance": "other",
+    "Fitness & Health": "other",
+    "Home Services": "local_services",
+    "Local Business": "local_services",
+    "Media / Blog": "media_content",
+    "Medical / Local Business": "local_services",
+    "Professional Services": "professional_services",
+    "Property": "local_services",
+    "Retail": "ecommerce_retail",
+    "Retail / Ecom": "ecommerce_retail",
+    "SaaS": "software_b2b",
+    "SaaS / Tech": "software_b2b",
+    "Software": "software_b2b",
+    "Software / B2B": "software_b2b",
+    "Travel / Lifestyle": "media_content"
+  }
+}
