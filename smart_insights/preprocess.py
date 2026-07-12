@@ -14,6 +14,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from smart_insights import MODEL
 from smart_insights.models import (
     EnrichedRow,
@@ -100,14 +102,18 @@ def _parse_with_retry(client, *, instructions: str, user_input: str, text_format
     parsed (refusal or None parse is a failure, not a crash)."""
     attempt_input = user_input
     for _ in range(2):
-        response = client.responses.parse(
-            model=MODEL,
-            instructions=instructions,
-            input=attempt_input,
-            text_format=text_format,
-            max_output_tokens=MAX_OUTPUT_TOKENS,
-        )
-        parsed = response.output_parsed
+        try:
+            parsed = client.responses.parse(
+                model=MODEL,
+                instructions=instructions,
+                input=attempt_input,
+                text_format=text_format,
+                max_output_tokens=MAX_OUTPUT_TOKENS,
+            ).output_parsed
+        except ValidationError:
+            # A truncated or malformed response surfaces as a pydantic error
+            # inside the SDK's parse — a validation failure, not a crash.
+            parsed = None
         if parsed is not None:
             return parsed
         attempt_input = (

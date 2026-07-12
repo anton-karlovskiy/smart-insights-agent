@@ -108,17 +108,20 @@ def _cmd_run(args: argparse.Namespace) -> int:
     for row in selected:
         if row.is_anomalous:
             # Processed correctly: the anomaly fields tell the story (§4.7).
-            entries.append(output_row(row, facts=None, status="ok"))
-            continue
-        facts = build_facts(row, rows)
-        if args.no_llm:
-            entries.append(output_row(row, facts, status="llm_skipped"))
-            continue
-        from smart_insights.insights import generate_insight
+            entry = output_row(row, facts=None, status="ok")
+            error = None
+        elif args.no_llm:
+            entry = output_row(row, build_facts(row, rows), status="llm_skipped")
+            error = None
+        else:
+            from smart_insights.insights import generate_insight
 
-        insight, error = generate_insight(facts, client)
-        row.insight = insight
-        entry = output_row(row, facts, status="ok" if error is None else "needs_review")
+            facts = build_facts(row, rows)
+            insight, error = generate_insight(facts, client)
+            row.insight = insight
+            entry = output_row(
+                row, facts, status="ok" if error is None else "needs_review"
+            )
         entry["status_reason"] = error
         entries.append(entry)
 

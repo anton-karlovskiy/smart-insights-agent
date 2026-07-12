@@ -71,6 +71,19 @@ class TestDeriveSegmentMap:
         _, mapping = derive_segment_map(["eCommerce"], mock_client)
         assert mapping == {"eCommerce": "ecommerce"}
 
+    def test_truncated_response_is_retried_not_crashed(self, mock_client):
+        """Token-limit truncation raises pydantic.ValidationError inside the
+        SDK's parse; it must land on the retry path, not crash."""
+
+        def truncated_then_ok(**kwargs):
+            if mock_client.responses.parse.call_count == 1:
+                SegmentMapResponse.model_validate_json('{"segments":["ec')  # raises
+            return parse_response(good_map())
+
+        mock_client.responses.parse.side_effect = truncated_then_ok
+        _, mapping = derive_segment_map(["eCommerce"], mock_client)
+        assert mapping == {"eCommerce": "ecommerce"}
+
 
 class TestEnrichRow:
     def test_happy_path(self, mock_client):

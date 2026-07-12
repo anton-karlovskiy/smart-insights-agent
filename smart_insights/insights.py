@@ -11,12 +11,16 @@ import json
 from typing import Any
 
 from openai import APIConnectionError, APIStatusError, RateLimitError
+from pydantic import ValidationError
 
 from smart_insights import MODEL
 from smart_insights.models import Insight
 from smart_insights.validate import validate_insight
 
-MAX_OUTPUT_TOKENS = 2048
+# SPEC §4.5 suggested 2048, but gpt-5 is a reasoning model and its reasoning
+# tokens are spent from this same budget — 2048 truncated real responses
+# mid-JSON. 8192 gives ample headroom; the validators still cap the prose.
+MAX_OUTPUT_TOKENS = 8192
 
 INSTRUCTIONS = """\
 You turn computed conversion facts into one clear, plain-English \
@@ -80,10 +84,14 @@ def generate_insight(facts: dict[str, Any], client) -> tuple[Insight | None, str
                 text_format=Insight,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
             )
+            insight = response.output_parsed
         except (RateLimitError, APIConnectionError, APIStatusError) as exc:
             # The SDK already retried transient failures (max_retries).
             return insight, f"API error: {exc}"
-        insight = response.output_parsed
+        except ValidationError:
+            # A truncated or malformed response surfaces as a pydantic error
+            # inside the SDK's parse — a validation failure, not a crash.
+            insight = None
         if insight is None:
             error = "the response could not be parsed into the required schema"
         else:

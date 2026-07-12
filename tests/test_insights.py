@@ -54,6 +54,20 @@ class TestGenerateInsight:
         insight, error = generate_insight(FACTS, mock_client)
         assert error is None and insight == ok_insight()
 
+    def test_truncated_response_is_failure_not_crash(self, mock_client):
+        """The SDK raises pydantic.ValidationError when max_output_tokens
+        truncates the JSON mid-string — seen with real gpt-5 output."""
+
+        def truncated_then_ok(**kwargs):
+            if mock_client.responses.parse.call_count == 1:
+                Insight.model_validate_json('{"recommendation":"Your ')  # raises
+            return parse_response(ok_insight())
+
+        mock_client.responses.parse.side_effect = truncated_then_ok
+        insight, error = generate_insight(FACTS, mock_client)
+        assert error is None and insight == ok_insight()
+        assert mock_client.responses.parse.call_count == 2
+
     def test_api_error_becomes_needs_review(self, mock_client):
         mock_client.responses.parse.side_effect = APIConnectionError(
             request=httpx.Request("POST", "https://api.openai.com/v1/responses")
