@@ -36,6 +36,9 @@ class Benchmark(BaseModel):
     max_opt_in_rate: float
     canonical_industry_segment: str
     top_performer_ids: list[int]
+    # §4.4 thin-segment guard: a non-"other" segment with fewer clean rows
+    # than benchmark.MIN_SEGMENT_SIZE is flagged rather than silently trusted.
+    low_confidence: bool
 
 
 class Insight(BaseModel):

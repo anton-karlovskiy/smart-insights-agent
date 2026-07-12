@@ -46,6 +46,29 @@ def build_parser() -> argparse.ArgumentParser:
 
 def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
+
+    if args.command == "preprocess":
+        from smart_insights import get_client
+        from smart_insights.preprocess import preprocess
+
+        try:
+            client = get_client()
+        except RuntimeError as exc:
+            print(f"error: {exc}", file=sys.stderr)
+            return 1
+        preprocess(args.input, args.out, client)
+        return 0
+
+    if args.command == "clean":
+        from smart_insights.audit import audit
+        from smart_insights.benchmark import compute_benchmarks
+        from smart_insights.models import load_enriched_rows
+        from smart_insights.report import print_segment_table
+
+        rows = compute_benchmarks(audit(load_enriched_rows(args.enriched)))
+        print_segment_table(rows)
+        return 0
+
     print(f"{args.command}: not implemented yet")
     return 1
 
