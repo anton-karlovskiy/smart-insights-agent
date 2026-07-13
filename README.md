@@ -137,6 +137,29 @@ uv run python -m smart_insights preprocess   # data/optinmonster_users.json
                                              #   -> data/segment_map.json
 ```
 
+## Row status
+
+Every row in `out/insights.json` carries a `status` — how the pipeline *ended*
+for that row — and a `status_reason`, the failure text when it did not end well
+(`null` otherwise). Together they are why no run dies on a bad row and no bad
+row disappears.
+
+| `status` | When | `status_reason` |
+|----------|------|-----------------|
+| `ok` | clean row with a grounded recommendation — or an anomalous row, gated out | `null` |
+| `needs_review` | stage 5 failed twice: an ungrounded number, an unparseable answer, or an API error | the failure |
+| `llm_skipped` | `run --no-llm`, so stages 5–6 never ran | `null` |
+
+An anomalous row is `ok`, not a failure: gating it out *is* the right answer, so
+it lands with `insight: null` and its anomaly field carrying the diagnosis. A
+`needs_review` row keeps the rejected insight next to the reason it was rejected
+(`number '105' does not appear in this row's facts`) — the reviewer sees what
+the model said and why it was thrown out, rather than an absence.
+
+Downstream, `needs_review` rows are excluded from the clean count in the console
+summary and fail `evaluate`; `llm_skipped` tells `evaluate` that a missing
+insight was intentional rather than a dropped row.
+
 ## Committed artifacts
 
 Three generated files are checked into git rather than produced at runtime. The
