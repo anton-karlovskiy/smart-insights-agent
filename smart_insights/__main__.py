@@ -9,7 +9,7 @@ import sys
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="python -m smart_insights",
-        description="OptinMonster smart-insights micro-agent (see SPEC.md)",
+        description="Smart Insights Agent (see SPEC.md)",
     )
     subcommands = parser.add_subparsers(dest="command", required=True)
 

@@ -587,7 +587,7 @@ wheels = [
 ]
 
 [[package]]
-name = "smart-insights"
+name = "smart-insights-agent"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [

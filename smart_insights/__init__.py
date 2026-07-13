@@ -1,4 +1,4 @@
-"""OptinMonster smart-insights micro-agent.
+"""Smart Insights Agent: next-best-action recommendations over OptinMonster website data.
 
 Deterministic Python owns every statistic and decision; the LLM is used only
 at two isolated points (preprocess, insights) and only to reshape prose it is

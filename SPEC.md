@@ -1,4 +1,4 @@
-# SPEC: OptinMonster Smart-Insights Micro-Agent
+# SPEC: Smart Insights Agent
 
 A Python CLI that takes a messy OptinMonster website dataset, cleans and normalizes it, computes peer benchmarks, and uses an OpenAI GPT model to produce one validated, plain-English "next-best-action" recommendation per website.
 
