@@ -9,9 +9,15 @@ Use the DocsExplorer subagent for efficient documentation lookup.
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Status: spec-stage
+## Status: built, polishing
 
-The implementation does not exist yet. `SPEC.md` is the authoritative design; `PROMPTS.md` is the annotated history of how it was written (read it to understand *why* a decision was made before changing it). The `smart_insights/` package, `pyproject.toml`, `README.md`, and tests described below are the intended build, not the current tree. When implementing, `SPEC.md` §7 (repo layout) and §8 (build order) are the plan of record — follow them and keep each milestone runnable.
+All seven pipeline stages are implemented and the tree matches `SPEC.md` §7: the `smart_insights/` package, the three committed artifacts, and 60 tests that pass offline with no API key (`uv run pytest`). The build order in §8 is done, not pending.
+
+What that changes for you:
+
+- **The code is the source of truth for what exists; `SPEC.md` is the source of truth for what was intended.** Where they disagree, that is a finding to surface, not a licence to quietly "fix" either one.
+- **`PROMPTS.md` is the annotated history of *why*** — read the relevant entry before changing a decision it records.
+- **Work now is polish, not build-out.** Readability, tests, docs, and correctness against the existing contract. The simplicity rule below still governs: a new feature needs an explicit ask, and the pipeline contract, CLI commands, JSON artifact schemas, and prompt text are all stable surfaces — changing one is a deliberate act, not a side effect.
 
 ## What this is
 
