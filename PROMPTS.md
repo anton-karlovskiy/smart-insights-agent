@@ -245,3 +245,7 @@ Three corrections came out of §24's build session, each tied to a commit. Full 
 ## 25.
 
 Please add mypy for static type checking and ruff for linting and formatting.
+
+## 26.
+
+Conduct a whole-project readability pass: rename modules, functions, and variables so their names state their purpose, and split or reword anything that obscures intent. The refactor must be strictly behavior-preserving — no changes to the pipeline contract, CLI commands, JSON artifact schemas, or prompt text — and the full test suite must stay green.

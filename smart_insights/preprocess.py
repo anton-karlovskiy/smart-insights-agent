@@ -34,6 +34,9 @@ from smart_insights.normalize import (
 
 MAX_OUTPUT_TOKENS = 8192  # gpt-5 spends reasoning tokens from this budget too
 
+# One call, then one retry carrying the validation error (SPEC §4.2).
+MAX_ATTEMPTS = 2
+
 # The client is the mockable seam (SPEC §4.2): typed Any so tests can inject a
 # mock without the real OpenAI class.
 _Response = TypeVar("_Response", bound=BaseModel)
@@ -108,12 +111,13 @@ def _parse_with_retry(
     instructions: str,
     user_input: str,
     text_format: type[_Response],
-    what: str,
+    call_description: str,
 ) -> _Response:
     """One structured-output call, retried once when the response cannot be
-    parsed (refusal or None parse is a failure, not a crash)."""
+    parsed (refusal or None parse is a failure, not a crash). call_description
+    names the call in the error raised when the retry fails too."""
     attempt_input = user_input
-    for _ in range(2):
+    for _ in range(MAX_ATTEMPTS):
         parsed: _Response | None
         try:
             parsed = client.responses.parse(
@@ -134,7 +138,7 @@ def _parse_with_retry(
             "could not be parsed into the required schema. Answer again, "
             "strictly following the schema."
         )
-    raise PreprocessError(f"{what}: no parseable response after retry")
+    raise PreprocessError(f"{call_description}: no parseable response after retry")
 
 
 def derive_segment_map(variants: list[str], client: Any) -> tuple[list[str], dict[str, str]]:
@@ -146,13 +150,13 @@ def derive_segment_map(variants: list[str], client: Any) -> tuple[list[str], dic
     )
     attempt_input = user_input
     error = ""
-    for _ in range(2):
+    for _ in range(MAX_ATTEMPTS):
         parsed = _parse_with_retry(
             client,
             instructions=SEGMENT_MAP_INSTRUCTIONS,
             user_input=attempt_input,
             text_format=SegmentMapResponse,
-            what="segment map derivation",
+            call_description="segment map derivation",
         )
         try:
             return parsed.segments, validate_segment_map(variants, parsed)
@@ -179,7 +183,7 @@ def enrich_row(row: RawRow, client: Any) -> RowEnrichmentResponse:
         instructions=ENRICH_INSTRUCTIONS,
         user_input=user_input,
         text_format=RowEnrichmentResponse,
-        what=f"row {row.id} enrichment",
+        call_description=f"row {row.id} enrichment",
     )
 
 
@@ -197,20 +201,20 @@ def preprocess(
     print(f"pass A: deriving segment map from {len(variants)} distinct wordings...")
     segments, mapping = derive_segment_map(variants, client)
     print(f"  {len(segments)} segments: {', '.join(segments)}")
-    segment_by_id = apply_segment_map(rows, mapping)
+    segment_by_row_id = apply_segment_map(rows, mapping)
 
-    enriched: list[EnrichedRow] = []
+    enriched_rows: list[EnrichedRow] = []
     for row in rows:
         print(f"pass B: row {row.id} ({row.website_url})...")
-        result = enrich_row(row, client)
-        if result.edge_case_anomaly:
-            print(f"  edge_case_anomaly: {result.edge_case_anomaly}")
-        enriched.append(
+        enrichment = enrich_row(row, client)
+        if enrichment.edge_case_anomaly:
+            print(f"  edge_case_anomaly: {enrichment.edge_case_anomaly}")
+        enriched_rows.append(
             EnrichedRow(
                 **row.model_dump(),
-                canonical_industry_segment=segment_by_id[row.id],
-                cleaned_setup_notes=result.cleaned_setup_notes,
-                edge_case_anomaly=result.edge_case_anomaly,
+                canonical_industry_segment=segment_by_row_id[row.id],
+                cleaned_setup_notes=enrichment.cleaned_setup_notes,
+                edge_case_anomaly=enrichment.edge_case_anomaly,
             )
         )
 
@@ -221,6 +225,6 @@ def preprocess(
         encoding="utf-8",
         newline="\n",  # committed artifact: byte-identical on every OS
     )
-    dump_enriched_rows(enriched, out_path)
+    dump_enriched_rows(enriched_rows, out_path)
     print(f"wrote {out_path} and {segment_map_path}")
-    return enriched
+    return enriched_rows

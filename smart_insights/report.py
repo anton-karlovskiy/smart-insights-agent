@@ -9,7 +9,9 @@ from typing import Any
 from smart_insights.models import EnrichedRow
 
 
-def output_row(row: EnrichedRow, facts: dict[str, Any] | None, status: str) -> dict[str, Any]:
+def build_output_entry(
+    row: EnrichedRow, facts: dict[str, Any] | None, status: str
+) -> dict[str, Any]:
     """One out/insights.json entry: carries everything the grounding check
     reads (§4.6), so `evaluate` can re-verify from the file alone, offline."""
     return {
@@ -37,7 +39,8 @@ def write_insights(entries: list[dict[str, Any]], path: str | Path) -> None:
     )
 
 
-def _fit(text: str, width: int) -> str:
+def _truncate(text: str, width: int) -> str:
+    """Fit text to the column, marking any cut with an ellipsis."""
     return text if len(text) <= width else text[: width - 1] + "…"
 
 
@@ -51,14 +54,14 @@ def print_segment_table(rows: list[EnrichedRow]) -> None:
         if row.edge_case_anomaly:
             anomaly = (anomaly + " + " if anomaly else "") + "edge_case"
         median = f"{row.benchmark.median_opt_in_rate}" if row.benchmark else "-"
-        flag = " (low-confidence)" if row.benchmark and row.benchmark.low_confidence else ""
+        thin_segment = " (low-confidence)" if row.benchmark and row.benchmark.low_confidence else ""
         print(
-            f"{row.id:>3}  {_fit(row.website_url, 38):<38} "
+            f"{row.id:>3}  {_truncate(row.website_url, 38):<38} "
             f"{row.canonical_industry_segment:<22} {row.opt_in_rate:>7}  "
-            f"{median:>7}  {anomaly}{flag}"
+            f"{median:>7}  {anomaly}{thin_segment}"
         )
-    clean = sum(1 for r in rows if not r.is_anomalous)
-    print(f"\n{len(rows)} rows: {clean} clean, {len(rows) - clean} anomalous")
+    clean_count = sum(1 for row in rows if not row.is_anomalous)
+    print(f"\n{len(rows)} rows: {clean_count} clean, {len(rows) - clean_count} anomalous")
 
 
 def print_run_summary(entries: list[dict[str, Any]]) -> None:
@@ -69,23 +72,25 @@ def print_run_summary(entries: list[dict[str, Any]]) -> None:
         median = benchmark["median_opt_in_rate"] if benchmark else None
         standing = f"{rate} vs median {median}" if median is not None else f"{rate}"
         if entry["insight"]:
-            text = entry["insight"]["recommendation"]
-            text += f"  [confidence: {entry['insight']['confidence']}]"
+            verdict = entry["insight"]["recommendation"]
+            verdict += f"  [confidence: {entry['insight']['confidence']}]"
         elif entry["edge_case_anomaly"]:
-            text = f"ANOMALY: {entry['edge_case_anomaly']}"
+            verdict = f"ANOMALY: {entry['edge_case_anomaly']}"
         elif entry["impossible_metric_anomaly"]:
-            text = "ANOMALY: impossible opt_in_rate (outside 0-100)"
+            verdict = "ANOMALY: impossible opt_in_rate (outside 0-100)"
         else:
-            text = f"(no insight: {entry['status']})"
+            verdict = f"(no insight: {entry['status']})"
         print(f"--- {entry['id']}: {entry['website_url']}")
         print(f"    {entry['canonical_industry_segment']} | opt-in {standing} | {entry['status']}")
-        print(f"    {text}")
+        print(f"    {verdict}")
 
     total = len(entries)
-    anomalous = sum(1 for e in entries if e["impossible_metric_anomaly"] or e["edge_case_anomaly"])
-    needs_review = sum(1 for e in entries if e["status"] == "needs_review")
+    anomalous_count = sum(
+        1 for entry in entries if entry["impossible_metric_anomaly"] or entry["edge_case_anomaly"]
+    )
+    needs_review_count = sum(1 for entry in entries if entry["status"] == "needs_review")
     # needs_review rows are excluded from the clean success count (§4.6).
     print(
-        f"\n{total} rows: {total - anomalous - needs_review} clean, "
-        f"{anomalous} anomalous, {needs_review} needs_review"
+        f"\n{total} rows: {total - anomalous_count - needs_review_count} clean, "
+        f"{anomalous_count} anomalous, {needs_review_count} needs_review"
     )

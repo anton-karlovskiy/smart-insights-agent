@@ -2,8 +2,8 @@
 
 import pytest
 
-from smart_insights.audit import audit
-from smart_insights.benchmark import build_facts, compute_benchmarks
+from smart_insights.audit import flag_impossible_rates
+from smart_insights.benchmark import build_insight_facts, compute_benchmarks
 from smart_insights.models import EnrichedRow
 
 
@@ -39,7 +39,7 @@ def rows() -> list[EnrichedRow]:
         row(8, 0.9, segment="software_b2b"),
         row(9, 2.1, segment="software_b2b"),
     ]
-    return compute_benchmarks(audit(fixture))
+    return compute_benchmarks(flag_impossible_rates(fixture))
 
 
 class TestComputeBenchmarks:
@@ -81,15 +81,17 @@ class TestComputeBenchmarks:
         assert healthy.low_confidence is False
 
     def test_other_segment_never_flagged(self):
-        fixture = compute_benchmarks(audit([row(1, 1.0, "other"), row(2, 2.0, "other")]))
+        fixture = compute_benchmarks(
+            flag_impossible_rates([row(1, 1.0, "other"), row(2, 2.0, "other")])
+        )
         benchmark = fixture[0].benchmark
         assert benchmark is not None
         assert benchmark.low_confidence is False
 
 
-class TestBuildFacts:
+class TestBuildInsightFacts:
     def test_joins_performer_rates_and_notes(self, rows):
-        facts = build_facts(next(r for r in rows if r.id == 5), rows)
+        facts = build_insight_facts(next(r for r in rows if r.id == 5), rows)
         assert [p["id"] for p in facts["top_performers"]] == [2, 3, 4]
         assert facts["top_performers"][0]["opt_in_rate"] == 4.1
         assert facts["top_performers"][0]["cleaned_setup_notes"] == ["Setup of site 2."]
@@ -97,4 +99,4 @@ class TestBuildFacts:
 
     def test_anomalous_row_refused(self, rows):
         with pytest.raises(ValueError, match="anomalous rows get no facts"):
-            build_facts(next(r for r in rows if r.id == 6), rows)
+            build_insight_facts(next(r for r in rows if r.id == 6), rows)

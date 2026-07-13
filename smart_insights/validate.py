@@ -18,15 +18,28 @@ MAX_RECOMMENDATION_CHARS = 600
 # Whole numbers 0-10 pass unconditionally so ordinary prose ("2-step",
 # "one of the three") never trips the check; an invented benchmark or a
 # leaked 105 still does.
-FREE_SMALL_INTS = {str(n) for n in range(11)}
+ALWAYS_ALLOWED_NUMBERS = {str(n) for n in range(11)}
 
-_NUMBER = re.compile(r"\d+(?:\.\d+)?")
+_NUMBER_TOKEN = re.compile(r"\d+(?:\.\d+)?")
 
 # One-action heuristic: phrases that signal a list of tips, not one action.
-_MULTI_ACTION = ("additionally", "also consider", "you should also", "another option")
+_MULTI_ACTION_PHRASES = ("additionally", "also consider", "you should also", "another option")
+
+# The fields benchmark.build_insight_facts put in front of the model. An output
+# row carries every one of them, so `evaluate` can rebuild the facts a saved
+# recommendation was grounded in and re-check it offline (§4.7).
+_FACTS_KEYS_IN_OUTPUT_ROW = (
+    "id",
+    "website_url",
+    "canonical_industry_segment",
+    "opt_in_rate",
+    "cleaned_setup_notes",
+    "benchmark",
+    "top_performers",
+)
 
 
-def _normalize(token: str) -> str:
+def _canonical_number(token: str) -> str:
     """Compare numbers after stripping trailing zeros ("5.0" == "5")."""
     if "." in token:
         token = token.rstrip("0").rstrip(".")
@@ -35,8 +48,8 @@ def _normalize(token: str) -> str:
 
 def permitted_numbers(facts: dict[str, Any]) -> set[str]:
     """The serialized facts are the universe of permitted numbers (§4.4)."""
-    serialized = json.dumps(facts, sort_keys=True)
-    return {_normalize(token) for token in _NUMBER.findall(serialized)}
+    serialized_facts = json.dumps(facts, sort_keys=True)
+    return {_canonical_number(token) for token in _NUMBER_TOKEN.findall(serialized_facts)}
 
 
 def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
@@ -45,23 +58,24 @@ def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
     the digits of "5.2%"."""
     problems: list[str] = []
 
-    text = insight.recommendation.strip()
-    if not text:
+    recommendation = insight.recommendation.strip()
+    if not recommendation:
         problems.append("recommendation is empty")
-    if len(text) > MAX_RECOMMENDATION_CHARS:
+    if len(recommendation) > MAX_RECOMMENDATION_CHARS:
         problems.append(
-            f"recommendation is {len(text)} chars, over the {MAX_RECOMMENDATION_CHARS} limit"
+            f"recommendation is {len(recommendation)} chars, "
+            f"over the {MAX_RECOMMENDATION_CHARS} limit"
         )
-    lowered = text.lower()
-    for phrase in _MULTI_ACTION:
-        if phrase in lowered:
+    lowercased = recommendation.lower()
+    for phrase in _MULTI_ACTION_PHRASES:
+        if phrase in lowercased:
             problems.append(f"recommendation must be exactly one action, but contains {phrase!r}")
 
-    allowed = permitted_numbers(facts)
-    for token in _NUMBER.findall(text):
-        if token in FREE_SMALL_INTS:
+    allowed_numbers = permitted_numbers(facts)
+    for token in _NUMBER_TOKEN.findall(recommendation):
+        if token in ALWAYS_ALLOWED_NUMBERS:
             continue
-        if _normalize(token) not in allowed:
+        if _canonical_number(token) not in allowed_numbers:
             problems.append(f"number {token!r} does not appear in this row's facts")
 
     return problems
@@ -74,8 +88,8 @@ def evaluate_entries(entries: list[dict[str, Any]]) -> list[tuple[int, list[str]
     results: list[tuple[int, list[str]]] = []
     for entry in entries:
         problems: list[str] = []
-        anomalous = entry["impossible_metric_anomaly"] or entry["edge_case_anomaly"]
-        if anomalous:
+        is_anomalous = entry["impossible_metric_anomaly"] or entry["edge_case_anomaly"]
+        if is_anomalous:
             # The invariant: anomalous rows get no benchmark and no insight.
             if entry["benchmark"] is not None:
                 problems.append("anomalous row has a benchmark")
@@ -87,18 +101,7 @@ def evaluate_entries(entries: list[dict[str, Any]]) -> list[tuple[int, list[str]
             if entry["status"] != "llm_skipped":
                 problems.append("clean row has no insight")
         else:
-            facts = {
-                key: entry[key]
-                for key in (
-                    "id",
-                    "website_url",
-                    "canonical_industry_segment",
-                    "opt_in_rate",
-                    "cleaned_setup_notes",
-                    "benchmark",
-                    "top_performers",
-                )
-            }
+            facts = {key: entry[key] for key in _FACTS_KEYS_IN_OUTPUT_ROW}
             problems.extend(validate_insight(Insight(**entry["insight"]), facts))
         results.append((entry["id"], problems))
     return results

@@ -11,34 +11,36 @@ def build_parser() -> argparse.ArgumentParser:
         prog="python -m smart_insights",
         description="OptinMonster smart-insights micro-agent (see SPEC.md)",
     )
-    sub = parser.add_subparsers(dest="command", required=True)
+    subcommands = parser.add_subparsers(dest="command", required=True)
 
-    p = sub.add_parser(
+    preprocess_parser = subcommands.add_parser(
         "preprocess",
         help="stage 2 (LLM): derive segment map + per-row notes/anomalies, "
         "write committed artifacts. The one command that hits the API.",
     )
-    p.add_argument("--input", default="data/optinmonster_users.json")
-    p.add_argument("--out", default="data/enriched.json")
+    preprocess_parser.add_argument("--input", default="data/optinmonster_users.json")
+    preprocess_parser.add_argument("--out", default="data/enriched.json")
 
-    p = sub.add_parser(
+    clean_parser = subcommands.add_parser(
         "clean",
         help="stages 3-4 over the committed artifact: segments, anomaly flags, "
         "benchmark table. No API calls.",
     )
-    p.add_argument("--enriched", default="data/enriched.json")
+    clean_parser.add_argument("--enriched", default="data/enriched.json")
 
-    p = sub.add_parser("run", help="stages 3-7: benchmark, insight, validation, report")
-    p.add_argument("--enriched", default="data/enriched.json")
-    p.add_argument("--out", default="out/insights.json")
-    p.add_argument("--id", type=int, default=None, help="run a single row")
-    p.add_argument("--no-llm", action="store_true", help="stop after stage 4")
+    run_parser = subcommands.add_parser(
+        "run", help="stages 3-7: benchmark, insight, validation, report"
+    )
+    run_parser.add_argument("--enriched", default="data/enriched.json")
+    run_parser.add_argument("--out", default="out/insights.json")
+    run_parser.add_argument("--id", type=int, default=None, help="run a single row")
+    run_parser.add_argument("--no-llm", action="store_true", help="stop after stage 4")
 
-    p = sub.add_parser(
+    evaluate_parser = subcommands.add_parser(
         "evaluate",
         help="re-run validate.py checks against a saved output file; exits nonzero on any failure",
     )
-    p.add_argument("--insights", default="out/insights.json")
+    evaluate_parser.add_argument("--insights", default="out/insights.json")
 
     return parser
 
@@ -65,12 +67,12 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "clean":
-        from smart_insights.audit import audit
+        from smart_insights.audit import flag_impossible_rates
         from smart_insights.benchmark import compute_benchmarks
         from smart_insights.models import load_enriched_rows
         from smart_insights.report import print_segment_table
 
-        rows = compute_benchmarks(audit(load_enriched_rows(args.enriched)))
+        rows = compute_benchmarks(flag_impossible_rates(load_enriched_rows(args.enriched)))
         print_segment_table(rows)
         return 0
 
@@ -85,17 +87,17 @@ def main(argv: list[str] | None = None) -> int:
 
 def _cmd_run(args: argparse.Namespace) -> int:
     """Stages 3-7: audit, benchmark, insight, validate, report."""
-    from smart_insights.audit import audit
-    from smart_insights.benchmark import build_facts, compute_benchmarks
+    from smart_insights.audit import flag_impossible_rates
+    from smart_insights.benchmark import build_insight_facts, compute_benchmarks
     from smart_insights.models import load_enriched_rows
-    from smart_insights.report import output_row, print_run_summary, write_insights
+    from smart_insights.report import build_output_entry, print_run_summary, write_insights
 
-    rows = compute_benchmarks(audit(load_enriched_rows(args.enriched)))
+    rows = compute_benchmarks(flag_impossible_rates(load_enriched_rows(args.enriched)))
 
-    selected = rows
+    selected_rows = rows
     if args.id is not None:
-        selected = [row for row in rows if row.id == args.id]
-        if not selected:
+        selected_rows = [row for row in rows if row.id == args.id]
+        if not selected_rows:
             print(f"error: no row with id {args.id}", file=sys.stderr)
             return 1
 
@@ -110,21 +112,21 @@ def _cmd_run(args: argparse.Namespace) -> int:
             return 1
 
     entries = []
-    for row in selected:
+    for row in selected_rows:
         if row.is_anomalous:
             # Processed correctly: the anomaly fields tell the story (§4.7).
-            entry = output_row(row, facts=None, status="ok")
+            entry = build_output_entry(row, facts=None, status="ok")
             error = None
         elif args.no_llm:
-            entry = output_row(row, build_facts(row, rows), status="llm_skipped")
+            entry = build_output_entry(row, build_insight_facts(row, rows), status="llm_skipped")
             error = None
         else:
             from smart_insights.insights import generate_insight
 
-            facts = build_facts(row, rows)
+            facts = build_insight_facts(row, rows)
             insight, error = generate_insight(facts, client)
             row.insight = insight
-            entry = output_row(row, facts, status="ok" if error is None else "needs_review")
+            entry = build_output_entry(row, facts, status="ok" if error is None else "needs_review")
         entry["status_reason"] = error
         entries.append(entry)
 
@@ -143,15 +145,15 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
 
     entries = json.loads(Path(args.insights).read_text(encoding="utf-8"))
     results = evaluate_entries(entries)
-    failures = 0
+    failure_count = 0
     for row_id, problems in results:
         if problems:
-            failures += 1
+            failure_count += 1
             print(f"{row_id:>3}  FAIL  {'; '.join(problems)}")
         else:
             print(f"{row_id:>3}  pass")
-    print(f"\n{len(results) - failures}/{len(results)} rows pass")
-    return 1 if failures else 0
+    print(f"\n{len(results) - failure_count}/{len(results)} rows pass")
+    return 1 if failure_count else 0
 
 
 if __name__ == "__main__":

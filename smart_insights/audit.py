@@ -16,7 +16,7 @@ def is_impossible_rate(opt_in_rate: float) -> bool:
     return opt_in_rate < 0 or opt_in_rate > 100
 
 
-def audit(rows: list[EnrichedRow]) -> list[EnrichedRow]:
+def flag_impossible_rates(rows: list[EnrichedRow]) -> list[EnrichedRow]:
     """Stamp impossible_metric_anomaly on every row, in place."""
     for row in rows:
         row.impossible_metric_anomaly = is_impossible_rate(row.opt_in_rate)

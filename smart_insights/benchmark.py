@@ -23,46 +23,50 @@ from smart_insights.models import Benchmark, EnrichedRow
 # "avoid segments too thin to benchmark" steer checkable by code (SPEC §4.4).
 MIN_SEGMENT_SIZE = 3
 
+# How many better-performing peers a row's facts carry as exemplars (SPEC §4.4).
+MAX_TOP_PERFORMERS = 3
+
 
 def compute_benchmarks(rows: list[EnrichedRow]) -> list[EnrichedRow]:
     """Stamp `benchmark` on every clean row, in place. Anomalous rows keep
     benchmark = None and never enter any segment's stats."""
-    clean = [row for row in rows if not row.is_anomalous]
-    by_segment: dict[str, list[EnrichedRow]] = {}
-    for row in clean:
-        by_segment.setdefault(row.canonical_industry_segment, []).append(row)
+    clean_rows = [row for row in rows if not row.is_anomalous]
+    clean_rows_by_segment: dict[str, list[EnrichedRow]] = {}
+    for row in clean_rows:
+        clean_rows_by_segment.setdefault(row.canonical_industry_segment, []).append(row)
 
-    for row in clean:
-        peers = by_segment[row.canonical_industry_segment]
-        rates = [peer.opt_in_rate for peer in peers]
-        better = sorted(
-            (peer for peer in peers if peer.opt_in_rate > row.opt_in_rate),
-            key=lambda peer: peer.opt_in_rate,
+    for row in clean_rows:
+        segment = row.canonical_industry_segment
+        # The row's own segment, itself included: website_count counts it too.
+        segment_rows = clean_rows_by_segment[segment]
+        segment_rates = [member.opt_in_rate for member in segment_rows]
+        better_performers = sorted(
+            (member for member in segment_rows if member.opt_in_rate > row.opt_in_rate),
+            key=lambda member: member.opt_in_rate,
             reverse=True,
         )
-        segment = row.canonical_industry_segment
         row.benchmark = Benchmark(
-            website_count=len(peers),
+            website_count=len(segment_rows),
             # Rounded stats are what the insight model may cite, so keep them
             # citable (the grounding check matches against these exact tokens).
-            mean_opt_in_rate=round(statistics.fmean(rates), 2),
-            median_opt_in_rate=round(statistics.median(rates), 2),
-            min_opt_in_rate=round(min(rates), 2),
-            max_opt_in_rate=round(max(rates), 2),
+            mean_opt_in_rate=round(statistics.fmean(segment_rates), 2),
+            median_opt_in_rate=round(statistics.median(segment_rates), 2),
+            min_opt_in_rate=round(min(segment_rates), 2),
+            max_opt_in_rate=round(max(segment_rates), 2),
             canonical_industry_segment=segment,
-            top_performer_ids=[peer.id for peer in better[:3]],
-            low_confidence=segment != "other" and len(peers) < MIN_SEGMENT_SIZE,
+            top_performer_ids=[member.id for member in better_performers[:MAX_TOP_PERFORMERS]],
+            low_confidence=segment != "other" and len(segment_rows) < MIN_SEGMENT_SIZE,
         )
     return rows
 
 
-def build_facts(row: EnrichedRow, rows: list[EnrichedRow]) -> dict[str, Any]:
+def build_insight_facts(row: EnrichedRow, all_rows: list[EnrichedRow]) -> dict[str, Any]:
     """The per-row facts handed to the insight LLM — exactly what the model
     sees, and the universe of permitted numbers for grounding (SPEC §4.6).
     Requires a clean, benchmarked row."""
     if row.benchmark is None:
         raise ValueError(f"row {row.id} has no benchmark; anomalous rows get no facts")
-    by_id = {r.id: r for r in rows}
+    row_by_id = {candidate.id: candidate for candidate in all_rows}
     return {
         "id": row.id,
         "website_url": row.website_url,
@@ -73,8 +77,8 @@ def build_facts(row: EnrichedRow, rows: list[EnrichedRow]) -> dict[str, Any]:
         "top_performers": [
             {
                 "id": performer_id,
-                "opt_in_rate": by_id[performer_id].opt_in_rate,
-                "cleaned_setup_notes": by_id[performer_id].cleaned_setup_notes,
+                "opt_in_rate": row_by_id[performer_id].opt_in_rate,
+                "cleaned_setup_notes": row_by_id[performer_id].cleaned_setup_notes,
             }
             for performer_id in row.benchmark.top_performer_ids
         ],

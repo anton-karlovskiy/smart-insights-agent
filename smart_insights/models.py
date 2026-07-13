@@ -104,28 +104,28 @@ class RowEnrichmentResponse(BaseModel):
 
 # --- Stage 1: load & validate, fail loudly on malformed input ---
 
-_RAW_ROWS = TypeAdapter(list[RawRow])
-_ENRICHED_ROWS = TypeAdapter(list[EnrichedRow])
+_RAW_ROW_LIST = TypeAdapter(list[RawRow])
+_ENRICHED_ROW_LIST = TypeAdapter(list[EnrichedRow])
 
 
 def load_raw_rows(path: str | Path) -> list[RawRow]:
-    return _RAW_ROWS.validate_json(Path(path).read_text(encoding="utf-8"))
+    return _RAW_ROW_LIST.validate_json(Path(path).read_text(encoding="utf-8"))
 
 
 def load_enriched_rows(path: str | Path) -> list[EnrichedRow]:
-    return _ENRICHED_ROWS.validate_json(Path(path).read_text(encoding="utf-8"))
+    return _ENRICHED_ROW_LIST.validate_json(Path(path).read_text(encoding="utf-8"))
 
 
 def dump_enriched_rows(rows: list[EnrichedRow], path: str | Path) -> None:
     """Write the committed stage-2 artifact. Runtime fields (audit, benchmark,
     insight) are excluded: the artifact records LLM judgment, later stages
     recompute deterministically on every run."""
-    payload = [
+    stage_2_fields_only = [
         row.model_dump(exclude={"impossible_metric_anomaly", "benchmark", "insight"})
         for row in rows
     ]
     Path(path).write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        json.dumps(stage_2_fields_only, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
         newline="\n",  # committed artifact: byte-identical on every OS
     )
