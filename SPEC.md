@@ -228,7 +228,8 @@ smart-insights-agent/
 ├── SPEC.md
 ├── README.md
 ├── PROMPTS.md
-├── pyproject.toml              # deps: openai, pydantic, pytest (dev)
+├── pyproject.toml              # deps: openai, pydantic; dev group: pytest, ruff, mypy
+├── uv.lock                     # committed: pinned resolution behind `uv sync`
 ├── data/
 │   ├── optinmonster_users.json
 │   ├── enriched.json           # committed stage-2 artifact (segments, notes, anomalies)
@@ -256,13 +257,13 @@ smart-insights-agent/
     └── test_insights.py
 ```
 
-Python 3.11+. Keep dependencies to `openai` and `pydantic` (pytest for dev). Three artifacts are committed on purpose so a reviewer without an API key can run everything offline: `data/enriched.json` and `data/segment_map.json` (the stage-2 preprocessing outputs, which `clean`/`run`/tests read) and `examples/sample_insights.json` (a real full-run output to read and run `evaluate` against). `out/` stays gitignored so working runs never pollute the diff.
+Python 3.11+, packaged and run with `uv`: `uv sync` installs from the committed `uv.lock`, and commands run as `uv run …` with no venv activation. Keep runtime dependencies to `openai` and `pydantic`; the `dev` dependency-group holds pytest, ruff, and mypy. Three artifacts are committed on purpose so a reviewer without an API key can run everything offline: `data/enriched.json` and `data/segment_map.json` (the stage-2 preprocessing outputs, which `clean`/`run`/tests read) and `examples/sample_insights.json` (a real full-run output to read and run `evaluate` against). `out/` stays gitignored so working runs never pollute the diff.
 
 ## 8. Build order
 
 Each milestone should leave the repo runnable and end with a commit. Rough time budget in parentheses (total ~3.5h).
 
-1. **Scaffold** (15 min). `pyproject.toml`, package skeleton, dataset in `data/`, empty CLI that parses subcommands. `.gitignore` (out/, .env, __pycache__).
+1. **Scaffold** (15 min). `pyproject.toml` + `uv sync` (commit the resulting `uv.lock`), package skeleton, dataset in `data/`, empty CLI that parses subcommands. `.gitignore` (out/, .env, __pycache__).
 2. **Load + normalize** (35 min). `models.py`, `normalize.py` (collect → validate → apply, tests with the LLM mocked).
 3. **Preprocess (LLM)** (45 min). `preprocess.py`: pass A derives the segment map, pass B produces per-row `cleaned_setup_notes` and `edge_case_anomaly`. Run once, commit `data/enriched.json` and `data/segment_map.json`; spot-check the sample's anomalous rows (§2) before trusting the artifact.
 4. **Audit + benchmarks** (40 min). `audit.py` (`impossible_metric_anomaly`), `benchmark.py`, tests. `clean` now shows anomaly flags and the benchmark table, all offline against the artifact.
@@ -278,8 +279,8 @@ Verified against the committed sample dataset; the specific rows cited are the s
 - [ ] A row whose notes contradict its `reported_industry` (sample: ID 3) keeps the segment its `reported_industry` implies — normalization never reads other fields — and its `edge_case_anomaly` records the contradiction.
 - [ ] A row whose rate measures the wrong thing (sample: ID 12, no capture field) has an `edge_case_anomaly` saying so and is neither benchmarked nor scored on that rate.
 - [ ] No recommendation contains a number that is not in that row's facts (verified by `evaluate`).
-- [ ] `python -m smart_insights evaluate --insights examples/sample_insights.json` passes and exits 0.
-- [ ] `pytest` passes offline with no API key set.
+- [ ] `uv run python -m smart_insights evaluate --insights examples/sample_insights.json` passes and exits 0.
+- [ ] `uv run pytest` passes offline with no API key set (on a clean checkout, after `uv sync` alone).
 - [ ] README explains setup in under a minute of reading; PROMPTS.md documents the AI collaboration honestly, including at least one correction of bad AI output.
 
 ## 10. Out of scope

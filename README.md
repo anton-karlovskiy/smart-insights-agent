@@ -9,9 +9,13 @@ reshapes prose it is given — never authoring facts or numbers. Full design:
 
 ## Setup
 
+Dependencies are managed with [uv](https://docs.astral.sh/uv/) and pinned in
+`uv.lock`. `uv sync` creates `.venv` and installs the project plus the `dev`
+group; `uv run` re-checks the lockfile before every command, so there is no
+virtualenv to activate.
+
 ```bash
-python -m venv .venv && .venv/Scripts/activate   # or source .venv/bin/activate
-pip install -e ".[dev]"
+uv sync                                           # env + deps from uv.lock
 cp .env.example .env                              # add OPENAI_API_KEY (only needed
                                                   # for `preprocess` and full `run`)
 ```
@@ -19,25 +23,25 @@ cp .env.example .env                              # add OPENAI_API_KEY (only nee
 ## Run
 
 ```bash
-pytest                                # all offline: LLM mocked, no API key needed
+uv run pytest                         # all offline: LLM mocked, no API key needed
 
-python -m smart_insights clean       # segments, anomaly flags, benchmark table (offline)
-python -m smart_insights run --no-llm         # stages 3-4, writes out/insights.json (offline)
-python -m smart_insights run                  # full pipeline incl. LLM insights (needs key)
-python -m smart_insights run --id 7           # one row (cheap debugging)
-python -m smart_insights evaluate --insights examples/sample_insights.json
+uv run python -m smart_insights clean         # segments, anomaly flags, benchmark table (offline)
+uv run python -m smart_insights run --no-llm  # stages 3-4, writes out/insights.json (offline)
+uv run python -m smart_insights run           # full pipeline incl. LLM insights (needs key)
+uv run python -m smart_insights run --id 7    # one row (cheap debugging)
+uv run python -m smart_insights evaluate --insights examples/sample_insights.json
                                       # re-verify a committed real output, offline, exit 0/1
 
-python -m smart_insights preprocess   # regenerate the committed stage-2 artifacts
-                                      # (the ONE command that must hit the API)
+uv run python -m smart_insights preprocess    # regenerate the committed stage-2 artifacts
+                                              # (the ONE command that must hit the API)
 ```
 
 ## Checks
 
 ```bash
-ruff format                           # format
-ruff check --fix                      # lint (E, F, I, UP, B, SIM, RUF)
-mypy                                  # static types, strict over smart_insights/ and tests/
+uv run ruff format                    # format
+uv run ruff check --fix               # lint (E, F, I, UP, B, SIM, RUF)
+uv run mypy                           # static types, strict over smart_insights/ and tests/
 ```
 
 ## Architecture

@@ -49,13 +49,18 @@ The sample dataset is a **30-row example, not a source of constants.** Pipeline 
 
 ## Commands (intended)
 
-```bash
-python -m smart_insights preprocess   # stage 2: the ONLY command that hits the API to regenerate artifacts
-python -m smart_insights clean        # stages 3-4 over committed enriched.json; offline
-python -m smart_insights run          # stages 3-7; --id N runs one row; --no-llm stops after stage 4
-python -m smart_insights evaluate     # re-runs validate.py checks against a saved output file; exits nonzero on any failure
+Dependencies are managed with `uv` (`uv.lock` is committed). `uv sync` builds `.venv`; prefix every command with `uv run` rather than activating it. Never use `pip install` here.
 
-pytest                                # all tests offline, LLM mocked, no API key required
+```bash
+uv sync                                      # env + deps, incl. the `dev` dependency-group
+
+uv run python -m smart_insights preprocess   # stage 2: the ONLY command that hits the API to regenerate artifacts
+uv run python -m smart_insights clean        # stages 3-4 over committed enriched.json; offline
+uv run python -m smart_insights run          # stages 3-7; --id N runs one row; --no-llm stops after stage 4
+uv run python -m smart_insights evaluate     # re-runs validate.py checks against a saved output file; exits nonzero on any failure
+
+uv run pytest                                # all tests offline, LLM mocked, no API key required
+uv run ruff check --fix && uv run mypy       # lint + strict types
 ```
 
 `evaluate` is the safety gate — it re-verifies grounding/sanity of a saved `insights.json` without the API, so it works in CI-style scripts and lets a reviewer without a key check real output.

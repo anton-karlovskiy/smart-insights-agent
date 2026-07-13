@@ -8,7 +8,7 @@ dependencies = [
     "pydantic>=2.0",
 ]
 
-[project.optional-dependencies]
+[dependency-groups]
 dev = ["pytest>=8.0", "mypy>=1.11", "ruff>=0.6"]
 
 [build-system]
@@ -20,6 +20,9 @@ packages = ["smart_insights"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# Tests import their own helpers (`from tests.conftest import ...`), so the repo
+# root must be importable regardless of how the package itself was installed.
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
