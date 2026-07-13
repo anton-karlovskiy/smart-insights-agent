@@ -4,6 +4,10 @@ from __future__ import annotations
 
 import argparse
 import sys
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from smart_insights.models import EnrichedRow
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -67,13 +71,9 @@ def main(argv: list[str] | None = None) -> int:
         return 0
 
     if args.command == "clean":
-        from smart_insights.audit import flag_impossible_rates
-        from smart_insights.benchmark import compute_benchmarks
-        from smart_insights.models import load_enriched_rows
         from smart_insights.report import print_segment_table
 
-        rows = compute_benchmarks(flag_impossible_rates(load_enriched_rows(args.enriched)))
-        print_segment_table(rows)
+        print_segment_table(_prepare_rows(args.enriched))
         return 0
 
     if args.command == "run":
@@ -85,14 +85,32 @@ def main(argv: list[str] | None = None) -> int:
     raise AssertionError(f"unhandled command {args.command}")
 
 
+def _prepare_rows(enriched_path: str) -> list[EnrichedRow]:
+    """Stages 3-4, shared by `clean` and `run`: load the committed artifact,
+    flag impossible rates, benchmark the clean rows. Offline and fast, so the
+    bar exists to name the stage that failed, not to pass the time."""
+    from smart_insights.audit import flag_impossible_rates
+    from smart_insights.benchmark import compute_benchmarks
+    from smart_insights.models import load_enriched_rows
+    from smart_insights.progress import Progress
+
+    with Progress("prepare", 3) as progress:
+        rows = load_enriched_rows(enriched_path)
+        progress.advance(f"loaded {len(rows)} rows")
+        rows = flag_impossible_rates(rows)
+        progress.advance("flagged impossible rates")
+        rows = compute_benchmarks(rows)
+        progress.advance("computed benchmarks")
+    return rows
+
+
 def _cmd_run(args: argparse.Namespace) -> int:
     """Stages 3-7: audit, benchmark, insight, validate, report."""
-    from smart_insights.audit import flag_impossible_rates
-    from smart_insights.benchmark import build_insight_facts, compute_benchmarks
-    from smart_insights.models import load_enriched_rows
+    from smart_insights.benchmark import build_insight_facts
+    from smart_insights.progress import Progress
     from smart_insights.report import build_output_entry, print_run_summary, write_insights
 
-    rows = compute_benchmarks(flag_impossible_rates(load_enriched_rows(args.enriched)))
+    rows = _prepare_rows(args.enriched)
 
     selected_rows = rows
     if args.id is not None:
@@ -112,23 +130,30 @@ def _cmd_run(args: argparse.Namespace) -> int:
             return 1
 
     entries = []
-    for row in selected_rows:
-        if row.is_anomalous:
-            # Processed correctly: the anomaly fields tell the story (§4.7).
-            entry = build_output_entry(row, facts=None, status="ok")
-            error = None
-        elif args.no_llm:
-            entry = build_output_entry(row, build_insight_facts(row, rows), status="llm_skipped")
-            error = None
-        else:
-            from smart_insights.insights import generate_insight
+    with Progress("insights", len(selected_rows)) as progress:
+        for row in selected_rows:
+            progress.start(f"row {row.id} {row.website_url}")
+            if row.is_anomalous:
+                # Processed correctly: the anomaly fields tell the story (§4.7).
+                entry = build_output_entry(row, facts=None, status="ok")
+                error = None
+            elif args.no_llm:
+                entry = build_output_entry(
+                    row, build_insight_facts(row, rows), status="llm_skipped"
+                )
+                error = None
+            else:
+                from smart_insights.insights import generate_insight
 
-            facts = build_insight_facts(row, rows)
-            insight, error = generate_insight(facts, client)
-            row.insight = insight
-            entry = build_output_entry(row, facts, status="ok" if error is None else "needs_review")
-        entry["status_reason"] = error
-        entries.append(entry)
+                facts = build_insight_facts(row, rows)
+                insight, error = generate_insight(facts, client)
+                row.insight = insight
+                entry = build_output_entry(
+                    row, facts, status="ok" if error is None else "needs_review"
+                )
+            entry["status_reason"] = error
+            entries.append(entry)
+            progress.advance(f"row {row.id} {entry['status']}")
 
     write_insights(entries, args.out)
     print_run_summary(entries)
@@ -141,10 +166,16 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
     import json
     from pathlib import Path
 
-    from smart_insights.validate import evaluate_entries
+    from smart_insights.progress import Progress
+    from smart_insights.validate import evaluate_entry
 
     entries = json.loads(Path(args.insights).read_text(encoding="utf-8"))
-    results = evaluate_entries(entries)
+    results = []
+    with Progress("evaluate", len(entries)) as progress:
+        for entry in entries:
+            results.append((entry["id"], evaluate_entry(entry)))
+            progress.advance(f"row {entry['id']}")
+
     failure_count = 0
     for row_id, problems in results:
         if problems:

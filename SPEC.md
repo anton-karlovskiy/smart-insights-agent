@@ -259,14 +259,16 @@ smart-insights-agent/
 │   ├── benchmark.py
 │   ├── insights.py
 │   ├── validate.py
-│   └── report.py
+│   ├── report.py
+│   └── progress.py             # dependency-free progress bar on stderr, used by every command
 └── tests/
     ├── test_normalize.py
     ├── test_preprocess.py
     ├── test_audit.py
     ├── test_benchmark.py
     ├── test_validate.py
-    └── test_insights.py
+    ├── test_insights.py
+    └── test_progress.py
 ```
 
 Python 3.11+, packaged and run with `uv`: `uv sync` installs from the committed `uv.lock`, and commands run as `uv run …` with no venv activation. Keep runtime dependencies to `openai` and `pydantic`; the `dev` dependency-group holds pytest, ruff, and mypy. Three artifacts are committed on purpose so a reviewer without an API key can run everything offline: `data/enriched.json` and `data/segment_map.json` (the stage-2 preprocessing outputs, which `clean`/`run`/tests read) and `examples/sample_insights.json` (a real full-run output to read and run `evaluate` against). `out/` stays gitignored so working runs never pollute the diff.

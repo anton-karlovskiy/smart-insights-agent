@@ -31,6 +31,7 @@ from smart_insights.normalize import (
     collect_variants,
     validate_segment_map,
 )
+from smart_insights.progress import Progress, status
 
 MAX_OUTPUT_TOKENS = 8192  # gpt-5 spends reasoning tokens from this budget too
 
@@ -198,25 +199,27 @@ def preprocess(
     rows = load_raw_rows(input_path)
 
     variants = collect_variants(rows)
-    print(f"pass A: deriving segment map from {len(variants)} distinct wordings...")
+    status(f"pass A: deriving segment map from {len(variants)} distinct wordings...")
     segments, mapping = derive_segment_map(variants, client)
-    print(f"  {len(segments)} segments: {', '.join(segments)}")
+    status(f"pass A: {len(segments)} segments: {', '.join(segments)}")
     segment_by_row_id = apply_segment_map(rows, mapping)
 
     enriched_rows: list[EnrichedRow] = []
-    for row in rows:
-        print(f"pass B: row {row.id} ({row.website_url})...")
-        enrichment = enrich_row(row, client)
-        if enrichment.edge_case_anomaly:
-            print(f"  edge_case_anomaly: {enrichment.edge_case_anomaly}")
-        enriched_rows.append(
-            EnrichedRow(
-                **row.model_dump(),
-                canonical_industry_segment=segment_by_row_id[row.id],
-                cleaned_setup_notes=enrichment.cleaned_setup_notes,
-                edge_case_anomaly=enrichment.edge_case_anomaly,
+    with Progress("pass B: enrich", len(rows)) as progress:
+        for row in rows:
+            progress.start(f"row {row.id} {row.website_url}")
+            enrichment = enrich_row(row, client)
+            if enrichment.edge_case_anomaly:
+                progress.log(f"  row {row.id} edge_case_anomaly: {enrichment.edge_case_anomaly}")
+            progress.advance()
+            enriched_rows.append(
+                EnrichedRow(
+                    **row.model_dump(),
+                    canonical_industry_segment=segment_by_row_id[row.id],
+                    cleaned_setup_notes=enrichment.cleaned_setup_notes,
+                    edge_case_anomaly=enrichment.edge_case_anomaly,
+                )
             )
-        )
 
     # Both artifacts are written together, after every call has succeeded,
     # so a mid-run failure never leaves a new segment map beside stale rows.

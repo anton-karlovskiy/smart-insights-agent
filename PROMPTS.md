@@ -257,3 +257,8 @@ Rewrite @README.md so a reader outside this project can grasp the core ideas and
 - **Architecture** — present the pipeline visually (diagram over prose) so the stage order and the deterministic/LLM split are readable at a glance.
 - **Run** — the commands are currently listed without sequence or context. Give the exact order to run them to produce insights, and state what each step consumes and produces, so someone can go from a fresh clone to `out/insights.json` without reading the source.
 - **Committed artifacts** — explain every artifact: what it is, which stage writes it, and why it is committed rather than generated at runtime.
+
+## 28.
+
+When running commands, for example, "uv run python -m smart_insights run", it should display some progress bar so I can know the status. Now it's silent.
+For all commands, the progress UX should be implemented.

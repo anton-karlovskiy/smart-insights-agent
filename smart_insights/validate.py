@@ -81,27 +81,30 @@ def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
     return problems
 
 
-def evaluate_entries(entries: list[dict[str, Any]]) -> list[tuple[int, list[str]]]:
-    """Re-run every check against saved output rows (§4.7 schema) — each row
+def evaluate_entry(entry: dict[str, Any]) -> list[str]:
+    """Re-run every check against one saved output row (§4.7 schema) — the row
     carries everything the grounding check reads, so this works offline.
-    Returns (id, problems) per row; all-empty problems means the file passes."""
-    results: list[tuple[int, list[str]]] = []
-    for entry in entries:
-        problems: list[str] = []
-        is_anomalous = entry["impossible_metric_anomaly"] or entry["edge_case_anomaly"]
-        if is_anomalous:
-            # The invariant: anomalous rows get no benchmark and no insight.
-            if entry["benchmark"] is not None:
-                problems.append("anomalous row has a benchmark")
-            if entry["insight"] is not None:
-                problems.append("anomalous row has an insight")
-        elif entry["status"] == "needs_review":
-            problems.append("row is marked needs_review")
-        elif entry["insight"] is None:
-            if entry["status"] != "llm_skipped":
-                problems.append("clean row has no insight")
-        else:
-            facts = {key: entry[key] for key in _FACTS_KEYS_IN_OUTPUT_ROW}
-            problems.extend(validate_insight(Insight(**entry["insight"]), facts))
-        results.append((entry["id"], problems))
-    return results
+    Returns the problems found; an empty list means the row passes."""
+    problems: list[str] = []
+    is_anomalous = entry["impossible_metric_anomaly"] or entry["edge_case_anomaly"]
+    if is_anomalous:
+        # The invariant: anomalous rows get no benchmark and no insight.
+        if entry["benchmark"] is not None:
+            problems.append("anomalous row has a benchmark")
+        if entry["insight"] is not None:
+            problems.append("anomalous row has an insight")
+    elif entry["status"] == "needs_review":
+        problems.append("row is marked needs_review")
+    elif entry["insight"] is None:
+        if entry["status"] != "llm_skipped":
+            problems.append("clean row has no insight")
+    else:
+        facts = {key: entry[key] for key in _FACTS_KEYS_IN_OUTPUT_ROW}
+        problems.extend(validate_insight(Insight(**entry["insight"]), facts))
+    return problems
+
+
+def evaluate_entries(entries: list[dict[str, Any]]) -> list[tuple[int, list[str]]]:
+    """Every saved output row checked: (id, problems) per row; all-empty
+    problems means the file passes."""
+    return [(entry["id"], evaluate_entry(entry)) for entry in entries]
