@@ -231,3 +231,13 @@ Here, you don't have to make a loom video but you can prepare some transcript.
 Please develop this project making meaningful commits in the process.
 At the end of each milestone of the build order, you may want to review it and fix any mistakes or errors before go to the next milestone.
 Once completed, you will want to run a thorough review with the whole project context in mind.
+
+### Corrections of bad AI output during the build (the §9 honesty requirement)
+
+Three corrections came out of §24's build session, each tied to a commit. Full detail in the deliverables folder's `BUILD-CORRECTIONS.md`.
+
+1. **Reality corrected the spec's `max_output_tokens=2048` (`ce09ac0`).** SPEC §4.5's AI-drafted claim that 2048 "is plenty" ignored that gpt-5 is a reasoning model whose reasoning tokens spend from the same budget. The first real run truncated a response mid-JSON, and the SDK raised `pydantic.ValidationError` from inside `responses.parse()` — a path the AI's error handling missed, so the batch crashed, violating the spec's own "a refusal or `None` parse is a validation failure, not a crash" rule. Fixed in both LLM modules (exception routed onto the retry path, budget raised to 8192, regression tests added). The mocked suite could never have caught either layer; only real model output did.
+
+2. **Final whole-project review found four defects in the AI's own green-tested code (`21ee479`).** (a) `is_anomalous` checked `edge_case_anomaly is not None` while `evaluate` checked truthiness, so a blank `""` anomaly would split the gating invariant in two directions; (b) `needs_review` rows were counted as "clean" in the run summary, violating §4.6; (c) `preprocess` wrote `segment_map.json` before the per-row calls, so a mid-run failure left a new map beside stale enriched rows (observed live during the real run); (d) fold-colliding segment-map keys were silently resolved last-wins instead of rejected.
+
+3. **A blocked dependency was recorded, not papered over (`3257089`, `2147d5c` → `28d735a`).** Mid-build the OpenAI key hit `insufficient_quota`. The stage-2/5 artifacts were committed as clearly-labeled provisional (Claude-authored per the exact pipeline prompts, run through the real validators, with regeneration instructions in the commit messages). When quota returned, all three were regenerated as genuine gpt-5 output — which also surfaced a Windows cp1252 console crash on the model's U+2011 hyphen, fixed in the same commit.
