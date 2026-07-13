@@ -9,13 +9,13 @@ from unittest.mock import MagicMock
 import pytest
 
 
-def parse_response(parsed):
+def parse_response(parsed: object) -> SimpleNamespace:
     """What client.responses.parse returns: only output_parsed is read."""
     return SimpleNamespace(output_parsed=parsed)
 
 
 @pytest.fixture
-def mock_client():
+def mock_client() -> MagicMock:
     """Client whose responses.parse side_effect tests script per call."""
     client = MagicMock()
     return client

@@ -9,6 +9,10 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from openai import OpenAI
 
 # The one model constant: swapping models is this one line (SPEC §4.5).
 MODEL = "gpt-5"
@@ -28,7 +32,7 @@ def _load_dotenv(path: str | Path = ".env") -> None:
         os.environ.setdefault(key.strip(), value.strip().strip("'\""))
 
 
-def get_client():
+def get_client() -> OpenAI:
     """Create the real OpenAI client. The two LLM modules take a client
     parameter so tests inject a mock and never reach this."""
     _load_dotenv()

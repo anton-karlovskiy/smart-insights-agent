@@ -241,3 +241,7 @@ Three corrections came out of §24's build session, each tied to a commit. Full 
 2. **Final whole-project review found four defects in the AI's own green-tested code (`21ee479`).** (a) `is_anomalous` checked `edge_case_anomaly is not None` while `evaluate` checked truthiness, so a blank `""` anomaly would split the gating invariant in two directions; (b) `needs_review` rows were counted as "clean" in the run summary, violating §4.6; (c) `preprocess` wrote `segment_map.json` before the per-row calls, so a mid-run failure left a new map beside stale enriched rows (observed live during the real run); (d) fold-colliding segment-map keys were silently resolved last-wins instead of rejected.
 
 3. **A blocked dependency was recorded, not papered over (`3257089`, `2147d5c` → `28d735a`).** Mid-build the OpenAI key hit `insufficient_quota`. The stage-2/5 artifacts were committed as clearly-labeled provisional (Claude-authored per the exact pipeline prompts, run through the real validators, with regeneration instructions in the commit messages). When quota returned, all three were regenerated as genuine gpt-5 output — which also surfaced a Windows cp1252 console crash on the model's U+2011 hyphen, fixed in the same commit.
+
+## 25.
+
+Please add mypy for static type checking and ruff for linting and formatting.

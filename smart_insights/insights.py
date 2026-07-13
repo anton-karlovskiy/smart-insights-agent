@@ -66,7 +66,7 @@ _FRAMING = (
 )
 
 
-def generate_insight(facts: dict[str, Any], client) -> tuple[Insight | None, str | None]:
+def generate_insight(facts: dict[str, Any], client: Any) -> tuple[Insight | None, str | None]:
     """One insight for one clean row's facts. Returns (insight, error):
     error is None on success; on repeated validation failure or a final API
     error it carries the needs_review reason. The last (invalid) insight is

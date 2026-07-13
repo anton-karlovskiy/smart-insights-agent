@@ -9,7 +9,7 @@ from typing import Any
 from smart_insights.models import EnrichedRow
 
 
-def output_row(row: EnrichedRow, facts: dict[str, Any] | None, status: str) -> dict:
+def output_row(row: EnrichedRow, facts: dict[str, Any] | None, status: str) -> dict[str, Any]:
     """One out/insights.json entry: carries everything the grounding check
     reads (§4.6), so `evaluate` can re-verify from the file alone, offline."""
     return {
@@ -27,7 +27,7 @@ def output_row(row: EnrichedRow, facts: dict[str, Any] | None, status: str) -> d
     }
 
 
-def write_insights(entries: list[dict], path: str | Path) -> None:
+def write_insights(entries: list[dict[str, Any]], path: str | Path) -> None:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
@@ -43,10 +43,7 @@ def _fit(text: str, width: int) -> str:
 
 def print_segment_table(rows: list[EnrichedRow]) -> None:
     """The `clean` view: id, site, segment, rate, anomaly flags, benchmark."""
-    print(
-        f"{'id':>3}  {'site':<38} {'segment':<22} {'rate':>7}  "
-        f"{'seg med':>7}  anomaly"
-    )
+    print(f"{'id':>3}  {'site':<38} {'segment':<22} {'rate':>7}  {'seg med':>7}  anomaly")
     for row in rows:
         anomaly = ""
         if row.impossible_metric_anomaly:
@@ -64,7 +61,7 @@ def print_segment_table(rows: list[EnrichedRow]) -> None:
     print(f"\n{len(rows)} rows: {clean} clean, {len(rows) - clean} anomalous")
 
 
-def print_run_summary(entries: list[dict]) -> None:
+def print_run_summary(entries: list[dict[str, Any]]) -> None:
     """The `run` view: recommendation or anomaly note per row, then totals."""
     for entry in entries:
         rate = entry["opt_in_rate"]
@@ -85,9 +82,7 @@ def print_run_summary(entries: list[dict]) -> None:
         print(f"    {text}")
 
     total = len(entries)
-    anomalous = sum(
-        1 for e in entries if e["impossible_metric_anomaly"] or e["edge_case_anomaly"]
-    )
+    anomalous = sum(1 for e in entries if e["impossible_metric_anomaly"] or e["edge_case_anomaly"])
     needs_review = sum(1 for e in entries if e["status"] == "needs_review")
     # needs_review rows are excluded from the clean success count (§4.6).
     print(

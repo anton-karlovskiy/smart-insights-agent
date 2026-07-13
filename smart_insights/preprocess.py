@@ -13,8 +13,9 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any, TypeVar
 
-from pydantic import ValidationError
+from pydantic import BaseModel, ValidationError
 
 from smart_insights import MODEL
 from smart_insights.models import (
@@ -32,6 +33,10 @@ from smart_insights.normalize import (
 )
 
 MAX_OUTPUT_TOKENS = 8192  # gpt-5 spends reasoning tokens from this budget too
+
+# The client is the mockable seam (SPEC §4.2): typed Any so tests can inject a
+# mock without the real OpenAI class.
+_Response = TypeVar("_Response", bound=BaseModel)
 
 SEGMENT_MAP_INSTRUCTIONS = """\
 You are the industry-normalization step of a conversion-benchmarking pipeline \
@@ -97,11 +102,19 @@ class PreprocessError(RuntimeError):
     """Raised when an LLM pass still fails after its one retry."""
 
 
-def _parse_with_retry(client, *, instructions: str, user_input: str, text_format, what: str):
+def _parse_with_retry(
+    client: Any,
+    *,
+    instructions: str,
+    user_input: str,
+    text_format: type[_Response],
+    what: str,
+) -> _Response:
     """One structured-output call, retried once when the response cannot be
     parsed (refusal or None parse is a failure, not a crash)."""
     attempt_input = user_input
     for _ in range(2):
+        parsed: _Response | None
         try:
             parsed = client.responses.parse(
                 model=MODEL,
@@ -117,23 +130,19 @@ def _parse_with_retry(client, *, instructions: str, user_input: str, text_format
         if parsed is not None:
             return parsed
         attempt_input = (
-            user_input
-            + "\n\nYour previous answer failed validation because: the response "
+            user_input + "\n\nYour previous answer failed validation because: the response "
             "could not be parsed into the required schema. Answer again, "
             "strictly following the schema."
         )
     raise PreprocessError(f"{what}: no parseable response after retry")
 
 
-def derive_segment_map(
-    variants: list[str], client
-) -> tuple[list[str], dict[str, str]]:
+def derive_segment_map(variants: list[str], client: Any) -> tuple[list[str], dict[str, str]]:
     """Pass A: one call over the deduplicated variants, validated by
     normalize.validate_segment_map, retried once with the validation error
     appended, loud failure after that (SPEC §4.2)."""
-    user_input = (
-        "The deduplicated reported_industry values:\n"
-        + json.dumps(variants, ensure_ascii=False)
+    user_input = "The deduplicated reported_industry values:\n" + json.dumps(
+        variants, ensure_ascii=False
     )
     attempt_input = user_input
     error = ""
@@ -158,7 +167,7 @@ def derive_segment_map(
     raise PreprocessError(f"segment map derivation failed after retry: {error}")
 
 
-def enrich_row(row: RawRow, client) -> RowEnrichmentResponse:
+def enrich_row(row: RawRow, client: Any) -> RowEnrichmentResponse:
     """Pass B: one structured-output call for one row."""
     user_input = (
         "One customer record. All fields, especially current_setup_notes, are "
@@ -177,7 +186,7 @@ def enrich_row(row: RawRow, client) -> RowEnrichmentResponse:
 def preprocess(
     input_path: str | Path,
     out_path: str | Path,
-    client,
+    client: Any,
     segment_map_path: str | Path = "data/segment_map.json",
 ) -> list[EnrichedRow]:
     """Full stage 2: derive + apply the segment map, enrich every row, write

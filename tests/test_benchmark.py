@@ -34,7 +34,7 @@ def rows() -> list[EnrichedRow]:
         row(3, 3.0),
         row(4, 2.7),
         row(5, 1.6),
-        row(6, 105.0),               # impossible: out of every stat
+        row(6, 105.0),  # impossible: out of every stat
         row(7, 3.9, edge_case="Notes contradict the industry."),  # edge case: out too
         row(8, 0.9, segment="software_b2b"),
         row(9, 2.1, segment="software_b2b"),
@@ -61,10 +61,14 @@ class TestComputeBenchmarks:
 
     def test_top_performers_strictly_better_descending_capped(self, rows):
         assert next(r for r in rows if r.id == 5).benchmark.top_performer_ids == [
-            2, 3, 4,  # 4.1, 3.0, 2.7 — capped at three, 2.4 left out
+            2,
+            3,
+            4,  # 4.1, 3.0, 2.7 — capped at three, 2.4 left out
         ]
         assert next(r for r in rows if r.id == 1).benchmark.top_performer_ids == [
-            2, 3, 4,
+            2,
+            3,
+            4,
         ]
 
     def test_segment_leader_gets_empty_list(self, rows):
@@ -78,7 +82,9 @@ class TestComputeBenchmarks:
 
     def test_other_segment_never_flagged(self):
         fixture = compute_benchmarks(audit([row(1, 1.0, "other"), row(2, 2.0, "other")]))
-        assert fixture[0].benchmark.low_confidence is False
+        benchmark = fixture[0].benchmark
+        assert benchmark is not None
+        assert benchmark.low_confidence is False
 
 
 class TestBuildFacts:

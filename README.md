@@ -32,6 +32,14 @@ python -m smart_insights preprocess   # regenerate the committed stage-2 artifac
                                       # (the ONE command that must hit the API)
 ```
 
+## Checks
+
+```bash
+ruff format                           # format
+ruff check --fix                      # lint (E, F, I, UP, B, SIM, RUF)
+mypy                                  # static types, strict over smart_insights/ and tests/
+```
+
 ## Architecture
 
 ```

@@ -31,9 +31,7 @@ def collect_variants(rows: list[RawRow]) -> list[str]:
     return sorted(seen.values(), key=_fold)
 
 
-def validate_segment_map(
-    variants: list[str], response: SegmentMapResponse
-) -> dict[str, str]:
+def validate_segment_map(variants: list[str], response: SegmentMapResponse) -> dict[str, str]:
     """Check the LLM's map covers every variant and invents no segment;
     return it as a plain variant->segment dict. Raises ValueError with every
     problem listed, so a retry prompt can carry the full error."""
@@ -55,9 +53,7 @@ def validate_segment_map(
             problems.append(f"variant {variant!r} is missing from the mapping")
     for variant, segment in mapping.items():
         if segment not in segments:
-            problems.append(
-                f"variant {variant!r} maps to {segment!r}, which is not in segments"
-            )
+            problems.append(f"variant {variant!r} maps to {segment!r}, which is not in segments")
     if problems:
         raise ValueError("; ".join(problems))
     return mapping

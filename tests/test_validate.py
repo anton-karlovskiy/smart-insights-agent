@@ -1,5 +1,7 @@
 """Validate: grounding rejects invented numbers; one-action heuristic; evaluate."""
 
+from typing import Any
+
 from smart_insights.models import Insight
 from smart_insights.validate import evaluate_entries, validate_insight
 
@@ -19,9 +21,7 @@ FACTS = {
         "top_performer_ids": [7],
         "low_confidence": False,
     },
-    "top_performers": [
-        {"id": 7, "opt_in_rate": 4.1, "cleaned_setup_notes": ["Exit intent."]}
-    ],
+    "top_performers": [{"id": 7, "opt_in_rate": 4.1, "cleaned_setup_notes": ["Exit intent."]}],
 }
 
 
@@ -31,33 +31,32 @@ def insight(text: str) -> Insight:
 
 class TestGrounding:
     def test_numbers_from_facts_pass(self):
-        assert validate_insight(
-            insight("You convert at 2.4% vs a 2.7% segment median; the top "
+        assert (
+            validate_insight(
+                insight(
+                    "You convert at 2.4% vs a 2.7% segment median; the top "
                     "performer hits 4.1% with exit intent. Add an exit-intent "
-                    "trigger to your 5s popup."),
-            FACTS,
-        ) == []
+                    "trigger to your 5s popup."
+                ),
+                FACTS,
+            )
+            == []
+        )
 
     def test_invented_number_rejected(self):
         problems = validate_insight(insight("Peers convert at 5.2%."), FACTS)
         assert problems == ["number '5.2' does not appear in this row's facts"]
 
     def test_leaked_105_rejected(self):
-        problems = validate_insight(
-            insight("Congratulations on your 105% conversion rate!"), FACTS
-        )
+        problems = validate_insight(insight("Congratulations on your 105% conversion rate!"), FACTS)
         assert any("'105'" in p for p in problems)
 
     def test_small_whole_numbers_free(self):
-        assert validate_insight(
-            insight("Switch to a 2-step optin with one field."), FACTS
-        ) == []
+        assert validate_insight(insight("Switch to a 2-step optin with one field."), FACTS) == []
 
     def test_trailing_zeros_and_percent_normalized(self):
         # facts contain 2.7 and 10; "2.70%" and "10%" must both pass
-        assert validate_insight(
-            insight("The median is 2.70% and you offer 10% off."), FACTS
-        ) == []
+        assert validate_insight(insight("The median is 2.70% and you offer 10% off."), FACTS) == []
 
 
 class TestSanity:
@@ -77,13 +76,12 @@ class TestSanity:
 
 
 class TestEvaluateEntries:
-    def entry(self, **overrides) -> dict:
+    def entry(self, **overrides: object) -> dict[str, Any]:
         base = {
             **FACTS,
             "impossible_metric_anomaly": False,
             "edge_case_anomaly": None,
-            "insight": {"recommendation": "Add an exit-intent trigger.",
-                        "confidence": "high"},
+            "insight": {"recommendation": "Add an exit-intent trigger.", "confidence": "high"},
             "status": "ok",
         }
         base.update(overrides)
@@ -93,8 +91,7 @@ class TestEvaluateEntries:
         assert evaluate_entries([self.entry()]) == [(1, [])]
 
     def test_grounding_failure_reported(self):
-        bad = self.entry(insight={"recommendation": "Aim for 9.9%.",
-                                  "confidence": "high"})
+        bad = self.entry(insight={"recommendation": "Aim for 9.9%.", "confidence": "high"})
         [(row_id, problems)] = evaluate_entries([bad])
         assert row_id == 1 and any("'9.9'" in p for p in problems)
 
@@ -107,7 +104,9 @@ class TestEvaluateEntries:
     def test_anomalous_row_with_nulls_passes(self):
         good = self.entry(
             edge_case_anomaly="Notes contradict the field.",
-            benchmark=None, top_performers=None, insight=None,
+            benchmark=None,
+            top_performers=None,
+            insight=None,
         )
         assert evaluate_entries([good]) == [(1, [])]
 
@@ -116,8 +115,6 @@ class TestEvaluateEntries:
         assert problems == ["row is marked needs_review"]
 
     def test_llm_skipped_passes_clean_row_without_insight(self):
-        assert evaluate_entries([self.entry(insight=None, status="llm_skipped")]) == [
-            (1, [])
-        ]
+        assert evaluate_entries([self.entry(insight=None, status="llm_skipped")]) == [(1, [])]
         [(_, problems)] = evaluate_entries([self.entry(insight=None, status="ok")])
         assert problems == ["clean row has no insight"]

@@ -69,9 +69,7 @@ class TestValidateSegmentMap:
             validate_segment_map(["SaaS", "eCommerce"], resp)
 
     def test_rejects_fold_colliding_keys_with_conflicting_segments(self):
-        resp = response(
-            ["saas", "ecommerce"], {"SaaS": "saas", "saas ": "ecommerce"}
-        )
+        resp = response(["saas", "ecommerce"], {"SaaS": "saas", "saas ": "ecommerce"})
         with pytest.raises(ValueError, match="differ only in case/whitespace"):
             validate_segment_map(["SaaS"], resp)
 
@@ -100,7 +98,7 @@ class TestCommittedArtifact:
         return rows, segment_map
 
     def test_fewer_segments_than_wordings(self, artifact):
-        rows, segment_map = artifact
+        _rows, segment_map = artifact
         assert len(segment_map["segments"]) < len(segment_map["mapping"])
 
     def test_all_ecommerce_spellings_share_one_segment(self, artifact):

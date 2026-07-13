@@ -36,8 +36,7 @@ def build_parser() -> argparse.ArgumentParser:
 
     p = sub.add_parser(
         "evaluate",
-        help="re-run validate.py checks against a saved output file; "
-        "exits nonzero on any failure",
+        help="re-run validate.py checks against a saved output file; exits nonzero on any failure",
     )
     p.add_argument("--insights", default="out/insights.json")
 
@@ -125,9 +124,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
             facts = build_facts(row, rows)
             insight, error = generate_insight(facts, client)
             row.insight = insight
-            entry = output_row(
-                row, facts, status="ok" if error is None else "needs_review"
-            )
+            entry = output_row(row, facts, status="ok" if error is None else "needs_review")
         entry["status_reason"] = error
         entries.append(entry)
 

@@ -10,7 +10,9 @@
         "pydantic",
         "pyproject",
         "pytest",
+        "setuptools",
         "stdlib",
+        "testpaths",
         "venv"
     ]
 }

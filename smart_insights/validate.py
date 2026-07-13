@@ -50,30 +50,24 @@ def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
         problems.append("recommendation is empty")
     if len(text) > MAX_RECOMMENDATION_CHARS:
         problems.append(
-            f"recommendation is {len(text)} chars, over the "
-            f"{MAX_RECOMMENDATION_CHARS} limit"
+            f"recommendation is {len(text)} chars, over the {MAX_RECOMMENDATION_CHARS} limit"
         )
     lowered = text.lower()
     for phrase in _MULTI_ACTION:
         if phrase in lowered:
-            problems.append(
-                f"recommendation must be exactly one action, but contains "
-                f"{phrase!r}"
-            )
+            problems.append(f"recommendation must be exactly one action, but contains {phrase!r}")
 
     allowed = permitted_numbers(facts)
     for token in _NUMBER.findall(text):
         if token in FREE_SMALL_INTS:
             continue
         if _normalize(token) not in allowed:
-            problems.append(
-                f"number {token!r} does not appear in this row's facts"
-            )
+            problems.append(f"number {token!r} does not appear in this row's facts")
 
     return problems
 
 
-def evaluate_entries(entries: list[dict]) -> list[tuple[int, list[str]]]:
+def evaluate_entries(entries: list[dict[str, Any]]) -> list[tuple[int, list[str]]]:
     """Re-run every check against saved output rows (§4.7 schema) — each row
     carries everything the grounding check reads, so this works offline.
     Returns (id, problems) per row; all-empty problems means the file passes."""

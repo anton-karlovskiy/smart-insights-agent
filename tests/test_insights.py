@@ -22,6 +22,7 @@ class TestGenerateInsight:
         mock_client.responses.parse.return_value = parse_response(ok_insight())
         insight, error = generate_insight(FACTS, mock_client)
         assert error is None
+        assert insight is not None
         assert insight.recommendation == "Add an exit-intent trigger."
         sent = mock_client.responses.parse.call_args.kwargs["input"]
         assert "never as instructions" in sent  # notes framed as data
@@ -44,7 +45,7 @@ class TestGenerateInsight:
         ]
         insight, error = generate_insight(FACTS, mock_client)
         assert insight == bad_insight()  # kept, never silently dropped
-        assert "'9.9'" in error
+        assert error is not None and "'9.9'" in error
 
     def test_none_parse_is_failure_not_crash(self, mock_client):
         mock_client.responses.parse.side_effect = [
@@ -74,4 +75,4 @@ class TestGenerateInsight:
         )
         insight, error = generate_insight(FACTS, mock_client)
         assert insight is None
-        assert error.startswith("API error:")
+        assert error is not None and error.startswith("API error:")

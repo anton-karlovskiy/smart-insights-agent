@@ -9,7 +9,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8.0"]
+dev = ["pytest>=8.0", "mypy>=1.11", "ruff>=0.6"]
 
 [build-system]
 requires = ["setuptools>=68"]
@@ -20,3 +20,24 @@ packages = ["smart_insights"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM", "RUF"]
+
+[tool.mypy]
+python_version = "3.11"
+files = ["smart_insights", "tests"]
+strict = true
+warn_unused_configs = true
+mypy_path = "."
+explicit_package_bases = true
+
+# Tests are still type-checked; they just need not annotate every fixture param.
+[[tool.mypy.overrides]]
+module = "tests.*"
+disallow_untyped_defs = false
+disallow_incomplete_defs = false
