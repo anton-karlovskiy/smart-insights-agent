@@ -1,11 +1,78 @@
 # Smart Insights Agent
 
-A Python CLI that takes a messy OptinMonster website dataset, cleans and
-normalizes it, computes peer benchmarks, and uses an OpenAI GPT model to
-produce one validated, plain-English "next-best-action" recommendation per
-website. Deterministic code owns every statistic and decision; the LLM only
-reshapes prose it is given — never authoring facts or numbers. Full design:
+A Python CLI over a 30-row mock dataset of [OptinMonster](https://optinmonster.com)
+customers — one row per customer website, holding a self-reported industry, the
+opt-in rate of that site's email-capture campaign, and a free-text note
+describing how the campaign is configured (form factor, trigger, targeting,
+offer, form fields). The data is deliberately raw: industry labels collide
+("eCommerce" / "E-comm" / "Retail / Ecom"), two rates are impossible (105.0,
+-0.5), and several notes quietly reveal that the rate is measuring nothing at
+all — a tracking script that never fires, a form with no email field.
+
+The CLI normalizes that data, benchmarks each site against its industry peers,
+and uses an OpenAI GPT model to produce one validated, plain-English
+"next-best-action" recommendation per site. Deterministic code owns every
+statistic and decision; the LLM only reshapes prose it is given — never
+authoring facts or numbers. The sample is treated as one instance of the input
+schema rather than a set of constants: see
+[Built for real data](#built-for-real-data-not-for-the-sample). Full design:
 [SPEC.md](SPEC.md); AI-collaboration history: [PROMPTS.md](PROMPTS.md).
+
+## Architecture
+
+Seven stages. The LLM appears at exactly two of them (stages 2 and 5); every
+other stage — and the entire test suite — is deterministic Python that runs
+offline with no API key.
+
+```
+       data/optinmonster_users.json          30 raw rows: id, website_url,
+                    |                        reported_industry, opt_in_rate,
+                    |                        current_setup_notes (free text)
+                    v
+ 1. load+validate   [python]   pydantic models, fail loudly on malformed input
+                    |
+ 2. preprocess      [ LLM  ]   A. derive the segment map from reported_industry
+                    |             values alone ("eCommerce" / "E-comm" /
+                    |             "Retail / Ecom" -> one segment)
+                    |          B. per row: split + polish the notes, and record
+                    |             an edge_case_anomaly when the fields disagree
+                    v
+       data/enriched.json + data/segment_map.json      <-- COMMITTED ARTIFACTS
+                    |                                      run once, not at runtime
+====================|=============================================================
+ everything below   |   reads the committed artifacts: offline, no API key
+====================|=============================================================
+                    v
+ 3. audit           [python]   impossible_metric_anomaly = rate < 0 or > 100
+                    |
+                    |   a row is ANOMALOUS if impossible_metric_anomaly is true
+                    +-- OR edge_case_anomaly is set. Anomalous rows are gated out
+                    |   here and stay out: benchmark = null, insight = null, and
+                    |   the anomaly text *is* their "fix your setup" answer.
+                    v
+ 4. benchmark       [python]   per-segment mean/median/min/max opt-in rate, plus
+                    |          up to three top performers above this row.
+                    |          Clean rows only. -> the `facts` dict
+                    v
+ 5. insight         [ LLM  ]   facts -> {recommendation, confidence}.
+                    |          Clean rows only; the model reshapes the facts it
+                    |          is handed and may cite no other number.
+                    v
+ 6. validate        [python]   every number in the recommendation must appear in
+                    |          that row's facts. Fail -> retry once with the error
+                    |          appended -> fail again -> mark the row needs_review
+                    v
+ 7. report          [python]   out/insights.json + console summary table
+```
+
+Two ideas carry the design:
+
+1. **Preprocessing is a committed artifact, not a runtime step.** Extraction is
+   non-deterministic; benchmarks must not be. Stage 2 runs once, its output is
+   committed, and everything downstream reads that same frozen input.
+2. **Anomalous rows are gated out early and stay out.** A broken site gets a
+   diagnosis, not marketing advice: a dead tracking script means fix the
+   install, not try exit intent.
 
 ## Setup
 
@@ -15,26 +82,78 @@ group; `uv run` re-checks the lockfile before every command, so there is no
 virtualenv to activate.
 
 ```bash
-uv sync                                           # env + deps from uv.lock
-cp .env.example .env                              # add OPENAI_API_KEY (only needed
-                                                  # for `preprocess` and full `run`)
+uv sync                    # env + deps from uv.lock
+cp .env.example .env       # add OPENAI_API_KEY — only needed for step 4 below
 ```
 
 ## Run
 
+From a fresh clone to `out/insights.json`. Steps 1–3 need no API key, because
+they read the committed stage-2 artifacts (see below); only step 4 calls the
+model.
+
 ```bash
-uv run pytest                         # all offline: LLM mocked, no API key needed
+# 1. Confirm the checkout is sound. All 60 tests run offline, LLM mocked.
+uv run pytest
 
-uv run python -m smart_insights clean         # segments, anomaly flags, benchmark table (offline)
-uv run python -m smart_insights run --no-llm  # stages 3-4, writes out/insights.json (offline)
-uv run python -m smart_insights run           # full pipeline incl. LLM insights (needs key)
-uv run python -m smart_insights run --id 7    # one row (cheap debugging)
-uv run python -m smart_insights evaluate --insights examples/sample_insights.json
-                                      # re-verify a committed real output, offline, exit 0/1
+# 2. See the deterministic half of the pipeline: stages 3-4.
+uv run python -m smart_insights clean
 
-uv run python -m smart_insights preprocess    # regenerate the committed stage-2 artifacts
-                                              # (the ONE command that must hit the API)
+# 3. Full pipeline with the LLM stubbed out: stages 3-4, then report.
+uv run python -m smart_insights run --no-llm
+
+# 4. Full pipeline for real: stages 3-7. Needs OPENAI_API_KEY.
+uv run python -m smart_insights run
+uv run python -m smart_insights run --id 7        # one row only, cheap debugging
+
+# 5. Re-verify the output offline — the grounding check, without the API.
+uv run python -m smart_insights evaluate          # defaults to out/insights.json
 ```
+
+| Step | Consumes | Produces | API key |
+|------|----------|----------|---------|
+| 1 `pytest` | `data/enriched.json`, fixtures | pass/fail | no |
+| 2 `clean` | `data/enriched.json` | console: segments, anomaly flags, benchmark table | no |
+| 3 `run --no-llm` | `data/enriched.json` | `out/insights.json` with `status: llm_skipped`, `insight: null` | no |
+| 4 `run` | `data/enriched.json` | `out/insights.json` — one recommendation per clean row | **yes** |
+| 5 `evaluate` | `out/insights.json` | per-row pass/fail, exit 0 or 1 | no |
+
+Step 5 is the safety gate: each output row carries the `facts` its
+recommendation was grounded in, so `evaluate` can re-run every `validate.py`
+check from the file alone and exit nonzero if any row fails. Point it at the
+committed real output to check this repo without a key of your own:
+
+```bash
+uv run python -m smart_insights evaluate --insights examples/sample_insights.json
+```
+
+Stage 2 is deliberately *not* part of that sequence. It is the one command that
+must hit the API, and it exists to regenerate the committed artifacts — run it
+only when the input dataset or the stage-2 prompts change:
+
+```bash
+uv run python -m smart_insights preprocess   # data/optinmonster_users.json
+                                             #   -> data/enriched.json
+                                             #   -> data/segment_map.json
+```
+
+## Committed artifacts
+
+Three generated files are checked into git rather than produced at runtime. The
+reason is the same for all three: **the LLM stages are non-deterministic, and
+nothing downstream of them may be.** Freezing their output makes every later
+command, and the whole test suite, reproducible and runnable offline — a
+reviewer with no API key can still exercise the entire pipeline and read real
+model output.
+
+| Artifact | Written by | What it holds | Why committed |
+|----------|-----------|---------------|---------------|
+| `data/enriched.json` | `preprocess` (stage 2) | every input row plus `canonical_industry_segment`, `cleaned_setup_notes`, `edge_case_anomaly` | It is the input to stages 3–7 and to every test. Re-deriving it per run would let benchmark numbers shift between runs on identical data. |
+| `data/segment_map.json` | `preprocess` (stage 2, pass A) | the derived segment vocabulary + the variant→segment mapping | The model's vocabulary choice is a judgment call; committing it makes it auditable and pins every downstream run to the same segments. |
+| `examples/sample_insights.json` | `run` (stage 7) | a real full-run output, all 30 rows | Lets a reader see genuine gpt-5 recommendations and run `evaluate` against them without a key. All 30 rows pass. |
+
+`out/` is gitignored, so working runs never pollute the diff — `run` writes
+there, and `examples/sample_insights.json` is a promoted copy of one such run.
 
 ## Checks
 
@@ -43,33 +162,6 @@ uv run ruff format                    # format
 uv run ruff check --fix               # lint (E, F, I, UP, B, SIM, RUF)
 uv run mypy                           # static types, strict over smart_insights/ and tests/
 ```
-
-## Architecture
-
-```
-load+validate (pydantic) → preprocess (LLM, committed artifact) → audit (Python)
-→ benchmark (Python, clean rows only) → insight (LLM, clean rows only)
-→ validate (Python, retry once) → report (out/insights.json + console)
-```
-
-Two ideas carry the design:
-
-1. **Preprocessing is a committed artifact, not a runtime step.** The only
-   LLM-writing stage runs once (`preprocess`) and its output is committed as
-   `data/enriched.json` + `data/segment_map.json`. Every other stage — and the
-   whole test suite — reads those files and runs offline.
-2. **Anomalous rows are gated out early and stay out.** A deterministic range
-   check (`impossible_metric_anomaly`) or an LLM-recorded contradiction
-   (`edge_case_anomaly`) excludes a row from every benchmark and from insight
-   generation: its `benchmark` and `insight` stay `null`, and the anomaly
-   explanation *is* its "fix your setup" answer.
-
-The LLM appears at exactly two points, both structured-output calls behind
-mockable seams: deriving the industry-segment vocabulary + cleaning each row's
-notes (stage 2), and turning computed facts into one recommendation (stage 5).
-`validate.py` then requires every number in a recommendation to appear in that
-row's facts — a failed check retries once with the error appended, then marks
-the row `needs_review`.
 
 ## Trap handling (sample dataset)
 
@@ -85,13 +177,43 @@ the row `needs_review`.
 Anomaly **classes**, not row IDs, drive the pipeline — the IDs above are just
 the sample's instances, asserted in tests, never hardcoded in `smart_insights/`.
 
-## Committed artifacts
+## Built for real data, not for the sample
 
-Three artifacts are committed on purpose so a reviewer without an API key can
-run everything offline: `data/enriched.json` + `data/segment_map.json` (real
-gpt-5 stage-2 output, read by `clean`/`run`/tests) and
-`examples/sample_insights.json` (a real full-run output — all 30 rows pass
-`evaluate`). Regenerate them with `preprocess` and `run` respectively.
+The 30 rows are an instance of the input schema, not the scope of the design.
+Nothing in `smart_insights/` is fitted to them, and the parts that would
+normally break on unseen data are the parts that were designed hardest:
+
+- **The industry vocabulary is derived, not hardcoded.** A lookup table of
+  spelling variants only ever fits the sample it was written against. Instead
+  one LLM call derives the segment set from the data's own
+  `reported_industry` values, code validates the result, and it is committed
+  (`data/segment_map.json`). New wordings on new data need no code change.
+- **Token cost already scales with variety, not volume.** The variants are
+  deduplicated case- and whitespace-insensitively *before* that call
+  (`normalize.py`), so a million rows collapse to a few hundred distinct
+  strings — the derive call costs the same. Only the per-row stage-2 pass grows
+  with row count, which is exactly why it is a one-off committed artifact
+  rather than a runtime step.
+- **Small-sample statistics are policed.** Real segments are lumpy, so a
+  non-`other` segment with fewer than `MIN_SEGMENT_SIZE` clean rows is flagged
+  `low_confidence` rather than silently trusted: a mean over two sites is not a
+  peer benchmark.
+- **Failure is per-row, never per-batch.** A refusal, a malformed parse, or an
+  ungrounded number retries once and then lands as `needs_review` with a
+  reason. No run dies on one bad row, and no bad row is silently dropped.
+- **Customer free text is quoted to the model, never obeyed** — the same
+  framing holds whether the notes come from a mock file or a live CRM export.
+
+Two optimizations are identified and deliberately deferred (SPEC §10), each
+noted at the code that would change:
+
+| Tweak | Where | Why it waits |
+|-------|-------|--------------|
+| Chunk the variant list; move the per-row stage-2 and insight calls to the **Batch API** (~50% cheaper, 24h window) | `normalize.py:7`, `benchmark.py:6` | 30 rows run sequentially in seconds; batching buys nothing at this size |
+| Summarize each segment's top setups **once** and reference that shared summary, instead of joining the same performers' notes into every peer's prompt | `benchmark.py:6` | Duplication is negligible at 30 rows; it is the dominant prompt cost at scale |
+
+Everything else — persistence, concurrency, auth, a web UI, multi-metric
+support — is out of scope for a 3–4h prototype by choice, not by oversight.
 
 ## Video outline (3-4 min)
 

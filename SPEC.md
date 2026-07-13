@@ -1,6 +1,6 @@
 # SPEC: Smart Insights Agent
 
-A Python CLI that takes a messy OptinMonster website dataset, cleans and normalizes it, computes peer benchmarks, and uses an OpenAI GPT model to produce one validated, plain-English "next-best-action" recommendation per website.
+A Python CLI that takes a messy dataset of OptinMonster customers — one row per customer website, carrying a self-reported industry, the opt-in rate of that site's email-capture campaign, and a free-text note describing how the campaign is configured — cleans and normalizes it, computes peer benchmarks, and uses an OpenAI GPT model to produce one validated, plain-English "next-best-action" recommendation per website.
 
 This project is a miniature of the pitched conversion benchmarking and next-best-action engine: deterministic data work first, a tightly scoped LLM on top, and honest validation of everything the LLM returns.
 
@@ -17,9 +17,21 @@ Target effort: 3 to 4 hours. Prefer the simple, testable version of everything. 
 - **Broken data gets a "fix your setup" answer, not marketing advice.** For example, a dead tracking script means fix the install, not try exit intent.
 - **One action per website.** One diagnosis, one recommendation. Not a list of tips.
 
-## 2. Anomaly classes (must all be handled)
+## 2. The dataset, and the anomaly classes it must survive
 
-Input schema — the only fixed contract: `id`, `website_url`, `reported_industry`, `opt_in_rate`, `current_setup_notes`. `data/optinmonster_users.json` is a 30-row **sample**; real data is dynamic with the same schema, so the pipeline must handle the following *classes* of mess wherever they occur. The rows below are the sample's instances of each class — worked examples for build-time verification, not project constants.
+Input schema — the only fixed contract, one row per customer website:
+
+| Field | What it is |
+|-------|------------|
+| `id` | Row identifier. |
+| `website_url` | The customer's site. Spellings are inconsistent (`www` vs bare, capitalized hosts like `SaaSmetrics-hub.io`). |
+| `reported_industry` | The customer's own description of their industry, typed freely and never validated: casing, synonyms, and compound labels vary. Normalized in stage 2 (§4.2). |
+| `opt_in_rate` | The site's opt-in conversion rate as a percentage, as reported. Can be impossible (`105.0`, `-0.5`) or meaningless (a rate with no capture field behind it). |
+| `current_setup_notes` | Free text, human-written, no schema — like something a support rep typed into a CRM. It describes how the customer has configured their OptinMonster campaign: form factor (overlay, slide-in, floating bar, welcome mat, ...), trigger (time delay, scroll depth, exit intent, click, or none), targeting (sitewide, cart page, returning visitors, ...), the offer, and form friction (field count, CAPTCHA, multi-step). |
+
+Paired with `opt_in_rate`, each row is a small case study: here is the configuration, here is the result. That is why the notes — not the rate — are what a diagnosis must read: the rows where the note contradicts the number are exactly the ones that separate a system that reads the setup from one that sorts by rate and tells the bottom five to try exit intent.
+
+`data/optinmonster_users.json` is a 30-row **sample**; real data is dynamic with the same schema, so the pipeline must handle the following *classes* of mess wherever they occur. The rows below are the sample's instances of each class — worked examples for build-time verification, not project constants.
 
 | ID | Problem | Correct handling |
 |----|---------|------------------|
