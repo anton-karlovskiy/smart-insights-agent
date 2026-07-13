@@ -249,3 +249,11 @@ Please add mypy for static type checking and ruff for linting and formatting.
 ## 26.
 
 Conduct a whole-project readability pass: rename modules, functions, and variables so their names state their purpose, and split or reword anything that obscures intent. The refactor must be strictly behavior-preserving — no changes to the pipeline contract, CLI commands, JSON artifact schemas, or prompt text — and the full test suite must stay green.
+
+## 27.
+
+Rewrite @README.md so a reader outside this project can grasp the core ideas and the architecture quickly and correctly. Three sections need work:
+
+- **Architecture** — present the pipeline visually (diagram over prose) so the stage order and the deterministic/LLM split are readable at a glance.
+- **Run** — the commands are currently listed without sequence or context. Give the exact order to run them to produce insights, and state what each step consumes and produces, so someone can go from a fresh clone to `out/insights.json` without reading the source.
+- **Committed artifacts** — explain every artifact: what it is, which stage writes it, and why it is committed rather than generated at runtime.
