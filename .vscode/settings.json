@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "conftest",
         "Ecom",
         "Ecommerce",
         "htmlcov",
@@ -10,6 +11,7 @@
         "pydantic",
         "pyproject",
         "pytest",
+        "pythonpath",
         "setuptools",
         "stdlib",
         "testpaths",
