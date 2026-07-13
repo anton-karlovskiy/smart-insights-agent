@@ -125,5 +125,7 @@ def dump_enriched_rows(rows: list[EnrichedRow], path: str | Path) -> None:
         for row in rows
     ]
     Path(path).write_text(
-        json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(payload, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",  # committed artifact: byte-identical on every OS
     )

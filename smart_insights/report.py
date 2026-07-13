@@ -31,7 +31,9 @@ def write_insights(entries: list[dict], path: str | Path) -> None:
     out = Path(path)
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(
-        json.dumps(entries, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        json.dumps(entries, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+        newline="\n",
     )
 
 

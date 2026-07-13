@@ -210,6 +210,7 @@ def preprocess(
     Path(segment_map_path).write_text(
         json.dumps({"segments": segments, "mapping": mapping}, indent=2) + "\n",
         encoding="utf-8",
+        newline="\n",  # committed artifact: byte-identical on every OS
     )
     dump_enriched_rows(enriched, out_path)
     print(f"wrote {out_path} and {segment_map_path}")
