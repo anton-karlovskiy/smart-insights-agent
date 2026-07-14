@@ -63,11 +63,12 @@ def main(argv: list[str] | None = None) -> int:
         from smart_insights.preprocess import preprocess
 
         try:
-            client = get_client()
+            # PreprocessError is a RuntimeError: a missing key and a dead API
+            # both end this command the same way — a message, not a traceback.
+            preprocess(args.input, args.out, get_client())
         except RuntimeError as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
-        preprocess(args.input, args.out, client)
         return 0
 
     if args.command == "clean":

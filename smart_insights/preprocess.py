@@ -15,6 +15,7 @@ import json
 from pathlib import Path
 from typing import Any, TypeVar
 
+from openai import APIConnectionError, APIStatusError, RateLimitError
 from pydantic import BaseModel, ValidationError
 
 from smart_insights import MODEL
@@ -128,6 +129,13 @@ def _parse_with_retry(
                 text_format=text_format,
                 max_output_tokens=MAX_OUTPUT_TOKENS,
             ).output_parsed
+        except (RateLimitError, APIConnectionError, APIStatusError) as exc:
+            # The SDK already retried transient failures (max_retries), so
+            # retrying here would only stack another wait onto a lost cause.
+            # Stage 5 can degrade a row to needs_review; stage 2 cannot — its
+            # two artifacts are written all-or-nothing — so the only honest
+            # move is to stop with a message and leave the committed files be.
+            raise PreprocessError(f"{call_description}: API error: {exc}") from exc
         except ValidationError:
             # A truncated or malformed response surfaces as a pydantic error
             # inside the SDK's parse — a validation failure, not a crash.
