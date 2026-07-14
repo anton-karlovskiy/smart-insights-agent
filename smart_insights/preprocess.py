@@ -198,7 +198,7 @@ def enrich_row(row: RawRow, client: Any) -> RowEnrichmentResponse:
 
 def preprocess(
     input_path: str | Path,
-    out_path: str | Path,
+    output_path: str | Path,
     client: Any,
     segment_map_path: str | Path = "data/segment_map.json",
 ) -> list[EnrichedRow]:
@@ -236,6 +236,6 @@ def preprocess(
         encoding="utf-8",
         newline="\n",  # committed artifact: byte-identical on every OS
     )
-    dump_enriched_rows(enriched_rows, out_path)
-    print(f"wrote {out_path} and {segment_map_path}")
+    dump_enriched_rows(enriched_rows, output_path)
+    print(f"wrote {output_path} and {segment_map_path}")
     return enriched_rows
