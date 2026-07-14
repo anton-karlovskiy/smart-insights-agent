@@ -1,5 +1,18 @@
 {
   "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "statusMessage": "Formatting, linting, type-checking, testing...",
+            "timeout": 180,
+            "command": "grep -qE '\"file_path\" *: *\"[^\"]+\\.py\"' || exit 0\ncd \"$CLAUDE_PROJECT_DIR\" || exit 0\nout=$(uv run ruff format . 2>&1 && uv run ruff check --fix . 2>&1 && uv run mypy 2>&1 && uv run pytest -q 2>&1) || { printf '%s\\n' \"$out\" >&2; exit 2; }"
+          }
+        ]
+      }
+    ],
     "Stop": [
       {
         "hooks": [

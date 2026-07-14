@@ -270,3 +270,7 @@ We should be careful to choose a model depending on what kind of task the LLM ha
 But for simplicity, I just used "gpt-5" which is kind of most reliable.
 Besides that a reasoning effort should be addressed depending on what a task is like.
 Can you please summarize this into @README.md under a specific section, "TODO" or something?
+
+## 30.
+
+Set up a Claude Code hook by which tests, type-checking, linting, formatting, etc are triggered automatically probably via "PostToolUse"
