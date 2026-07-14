@@ -262,3 +262,11 @@ Rewrite @README.md so a reader outside this project can grasp the core ideas and
 
 When running commands, for example, "uv run python -m smart_insights run", it should display some progress bar so I can know the status. Now it's silent.
 For all commands, the progress UX should be implemented.
+
+## 29.
+
+In this project, I used "gpt-5" model universally for "preprocess" and "insights". But it's not a good practice.
+We should be careful to choose a model depending on what kind of task the LLM handles because it will cost money.
+But for simplicity, I just used "gpt-5" which is kind of most reliable.
+Besides that a reasoning effort should be addressed depending on what a task is like.
+Can you please summarize this into @README.md under a specific section, "TODO" or something?

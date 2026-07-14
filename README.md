@@ -238,6 +238,38 @@ noted at the code that would change:
 Everything else — persistence, concurrency, auth, a web UI, multi-metric
 support — is out of scope for a 3–4h prototype by choice, not by oversight.
 
+## TODO
+
+**Tune the model *and* the reasoning effort per task, not once for the whole
+app.** Both LLM stages currently share one constant — `MODEL = "gpt-5"` in
+`smart_insights/__init__.py:18` — and neither passes a `reasoning` parameter,
+so both also run at the model's default effort. That was a simplicity call: one
+knob, one swap, the strongest model at its standard setting, so no stage is
+ever the weak link. It is not good practice. Both are cost levers, and the
+three calls are not the same kind of work:
+
+| Call | What the model actually does | Cheaper model? | Effort |
+|------|------------------------------|----------------|--------|
+| 2A — derive the segment map (`preprocess.py`) | one call, real judgment: invent a segment vocabulary from raw industry strings and defend it | No. Runs once, is committed, and every downstream benchmark inherits its choice. Buy the best. | Raise it. This is the one call where thinking longer is worth paying for. |
+| 2B — per-row notes + anomaly (`preprocess.py`) | 30 calls: split prose into fields, flag a field that contradicts another | Likely. Mostly extraction — but the anomaly judgment is the subtle part. | Split it. Extraction wants low; deciding "these two fields contradict" does not. |
+| 5 — recommendation (`insights.py`) | one call per clean row: reshape a `facts` dict into prose, cite nothing else | Likely. Deterministic code already owns every number; the model is a writer, and `validate.py` catches it if it strays. | Lower it. There is nothing to reason *about*: the arithmetic is done, the facts are handed over, the job is phrasing. |
+
+The API takes effort as `reasoning={"effort": ...}` on the same
+`responses.parse()` call, ranging from `minimal` (latency-critical, barely any
+reasoning tokens) through the `medium` default up to `high` (hard reasoning,
+paid for in tokens and latency) — exact levels vary by model, so check the
+[reasoning guide](https://developers.openai.com/api/docs/guides/reasoning)
+against whatever `MODEL` is set to. Reasoning tokens are billed as output
+tokens, which is also why `MAX_OUTPUT_TOKENS` sits at 8192: they are spent from
+that same budget.
+
+So the fix is a small per-stage config — model plus effort — and then an
+evaluation, because neither is a guess worth shipping unmeasured: run the
+cheaper/lighter setting over the same committed inputs, diff against
+`examples/sample_insights.json`, and keep the downgrade only where quality
+holds. At 30 rows the saving is pennies, which is why this is written down
+rather than done.
+
 ## Video outline (3-4 min)
 
 1. The dataset: 30 messy rows — impossible rates, dead trackers, contradicting
