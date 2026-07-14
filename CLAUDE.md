@@ -21,7 +21,7 @@ What that changes for you:
 
 ## What this is
 
-A Python CLI (`python -m smart_insights`) that takes a messy OptinMonster website dataset (`data/optinmonster_users.json`), cleans/normalizes it, computes peer benchmarks, and uses an OpenAI GPT model to produce one validated "next-best-action" recommendation per website. Target scope is a ~3–4h proof-of-concept — **prefer the simplest testable version of everything; no web framework, no database, no thin-segment fallbacks or other speculative features** (the user has repeatedly cut over-engineering — see `PROMPTS.md` §14).
+A Python CLI (`python -m smart_insights`) that takes a messy dataset of OptinMonster customers' opt-in campaigns (`data/optinmonster_users.json`, one row per customer website), cleans/normalizes it, computes peer benchmarks, and uses an OpenAI GPT model to produce one validated "next-best-action" recommendation per website. Target scope is a ~3–4h proof-of-concept — **prefer the simplest testable version of everything; no web framework, no database, no thin-segment fallbacks or other speculative features** (the user has repeatedly cut over-engineering — see `PROMPTS.md` §14).
 
 ## Core architecture (the non-obvious parts)
 

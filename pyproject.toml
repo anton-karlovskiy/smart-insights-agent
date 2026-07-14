@@ -1,7 +1,7 @@
 [project]
 name = "smart-insights-agent"
 version = "0.1.0"
-description = "Smart Insights Agent: clean, benchmark, and recommend over OptinMonster website data"
+description = "Smart Insights Agent: clean, benchmark, and recommend over OptinMonster customers' opt-in campaign data"
 requires-python = ">=3.11"
 dependencies = [
     "openai>=2.0",
