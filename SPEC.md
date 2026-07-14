@@ -205,17 +205,17 @@ On failure: retry the API call once with the validation error appended to the us
 Package `smart_insights`, entry point via `python -m smart_insights` (argparse subcommands, stdlib only):
 
 ```
-python -m smart_insights preprocess [--input data/optinmonster_users.json] [--out data/enriched.json]
+python -m smart_insights preprocess [--input data/optinmonster_users.json] [--output data/enriched.json]
     # stage 2 (the LLM pass): writes the committed preprocessing artifacts (enriched rows,
     # plus data/segment_map.json alongside). The one command that must hit the API to regenerate.
 
-python -m smart_insights clean      [--enriched data/enriched.json]
+python -m smart_insights clean      [--input data/enriched.json]
     # stages 3-4 over the committed artifact: prints segments, anomaly flags, benchmark table. No API calls.
 
-python -m smart_insights run        [--enriched ...] [--out out/insights.json] [--id N] [--no-llm]
+python -m smart_insights run        [--input data/enriched.json] [--output out/insights.json] [--id N] [--no-llm]
     # stages 3-7: benchmark, insight, validation, report; --id runs one row (cheap debugging); --no-llm stops after stage 4
 
-python -m smart_insights evaluate   [--insights out/insights.json]
+python -m smart_insights evaluate   [--input out/insights.json]
     # re-runs all validate.py checks against a saved output file and prints pass/fail per row
 ```
 
@@ -293,7 +293,7 @@ Verified against the committed sample dataset; the specific rows cited are the s
 - [ ] A row whose notes contradict its `reported_industry` (sample: ID 3) keeps the segment its `reported_industry` implies — normalization never reads other fields — and its `edge_case_anomaly` records the contradiction.
 - [ ] A row whose rate measures the wrong thing (sample: ID 12, no capture field) has an `edge_case_anomaly` saying so and is neither benchmarked nor scored on that rate.
 - [ ] No recommendation contains a number that is not in that row's facts (verified by `evaluate`).
-- [ ] `uv run python -m smart_insights evaluate --insights examples/sample_insights.json` passes and exits 0.
+- [ ] `uv run python -m smart_insights evaluate --input examples/sample_insights.json` passes and exits 0.
 - [ ] `uv run pytest` passes offline with no API key set (on a clean checkout, after `uv sync` alone).
 - [ ] README explains setup in under a minute of reading; PROMPTS.md documents the AI collaboration honestly, including at least one correction of bad AI output.
 

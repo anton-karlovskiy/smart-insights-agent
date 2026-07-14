@@ -23,20 +23,20 @@ def build_parser() -> argparse.ArgumentParser:
         "write committed artifacts. The one command that hits the API.",
     )
     preprocess_parser.add_argument("--input", default="data/optinmonster_users.json")
-    preprocess_parser.add_argument("--out", default="data/enriched.json")
+    preprocess_parser.add_argument("--output", default="data/enriched.json")
 
     clean_parser = subcommands.add_parser(
         "clean",
         help="stages 3-4 over the committed artifact: segments, anomaly flags, "
         "benchmark table. No API calls.",
     )
-    clean_parser.add_argument("--enriched", default="data/enriched.json")
+    clean_parser.add_argument("--input", default="data/enriched.json")
 
     run_parser = subcommands.add_parser(
         "run", help="stages 3-7: benchmark, insight, validation, report"
     )
-    run_parser.add_argument("--enriched", default="data/enriched.json")
-    run_parser.add_argument("--out", default="out/insights.json")
+    run_parser.add_argument("--input", default="data/enriched.json")
+    run_parser.add_argument("--output", default="out/insights.json")
     run_parser.add_argument("--id", type=int, default=None, help="run a single row")
     run_parser.add_argument("--no-llm", action="store_true", help="stop after stage 4")
 
@@ -44,7 +44,7 @@ def build_parser() -> argparse.ArgumentParser:
         "evaluate",
         help="re-run validate.py checks against a saved output file; exits nonzero on any failure",
     )
-    evaluate_parser.add_argument("--insights", default="out/insights.json")
+    evaluate_parser.add_argument("--input", default="out/insights.json")
 
     return parser
 
@@ -65,7 +65,7 @@ def main(argv: list[str] | None = None) -> int:
         try:
             # PreprocessError is a RuntimeError: a missing key and a dead API
             # both end this command the same way — a message, not a traceback.
-            preprocess(args.input, args.out, get_client())
+            preprocess(args.input, args.output, get_client())
         except RuntimeError as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
@@ -74,7 +74,7 @@ def main(argv: list[str] | None = None) -> int:
     if args.command == "clean":
         from smart_insights.report import print_segment_table
 
-        print_segment_table(_prepare_rows(args.enriched))
+        print_segment_table(_prepare_rows(args.input))
         return 0
 
     if args.command == "run":
@@ -86,7 +86,7 @@ def main(argv: list[str] | None = None) -> int:
     raise AssertionError(f"unhandled command {args.command}")
 
 
-def _prepare_rows(enriched_path: str) -> list[EnrichedRow]:
+def _prepare_rows(input_path: str) -> list[EnrichedRow]:
     """Stages 3-4, shared by `clean` and `run`: load the committed artifact,
     flag impossible rates, benchmark the clean rows. Offline and fast, so the
     bar exists to name the stage that failed, not to pass the time."""
@@ -96,7 +96,7 @@ def _prepare_rows(enriched_path: str) -> list[EnrichedRow]:
     from smart_insights.progress import Progress
 
     with Progress("prepare", 3) as progress:
-        rows = load_enriched_rows(enriched_path)
+        rows = load_enriched_rows(input_path)
         progress.advance(f"loaded {len(rows)} rows")
         rows = flag_impossible_rates(rows)
         progress.advance("flagged impossible rates")
@@ -111,7 +111,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
     from smart_insights.progress import Progress
     from smart_insights.report import build_output_entry, print_run_summary, write_insights
 
-    rows = _prepare_rows(args.enriched)
+    rows = _prepare_rows(args.input)
 
     selected_rows = rows
     if args.id is not None:
@@ -156,9 +156,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
             entries.append(entry)
             progress.advance(f"row {row.id} {entry['status']}")
 
-    write_insights(entries, args.out)
+    write_insights(entries, args.output)
     print_run_summary(entries)
-    print(f"wrote {args.out}")
+    print(f"wrote {args.output}")
     return 0
 
 
@@ -170,7 +170,7 @@ def _cmd_evaluate(args: argparse.Namespace) -> int:
     from smart_insights.progress import Progress
     from smart_insights.validate import evaluate_entry
 
-    entries = json.loads(Path(args.insights).read_text(encoding="utf-8"))
+    entries = json.loads(Path(args.input).read_text(encoding="utf-8"))
     results = []
     with Progress("evaluate", len(entries)) as progress:
         for entry in entries:

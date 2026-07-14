@@ -124,7 +124,7 @@ check from the file alone and exit nonzero if any row fails. Point it at the
 committed real output to check this repo without a key of your own:
 
 ```bash
-uv run python -m smart_insights evaluate --insights examples/sample_insights.json
+uv run python -m smart_insights evaluate --input examples/sample_insights.json
 ```
 
 Stage 2 is deliberately *not* part of that sequence. It is the one command that
