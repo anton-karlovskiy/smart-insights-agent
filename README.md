@@ -137,6 +137,40 @@ uv run python -m smart_insights preprocess   # data/optinmonster_users.json
                                              #   -> data/segment_map.json
 ```
 
+## CLI options
+
+Every flag has a default that reproduces the runs above, so the commands work
+with no arguments — the paths below are documented because they are overridable,
+not because you must set them.
+
+| Command | Flag | Default | What it does |
+|---------|------|---------|--------------|
+| `preprocess` | `--input` | `data/optinmonster_users.json` | raw 30-row dataset to enrich |
+| | `--output` | `data/enriched.json` | where the enriched rows are written |
+| `clean` | `--input` | `data/enriched.json` | committed artifact to benchmark |
+| `run` | `--input` | `data/enriched.json` | committed artifact to run stages 3–7 over |
+| | `--output` | `out/insights.json` | where the per-row insights are written |
+| | `--id N` | all rows | run a single row by `id` — cheap debugging |
+| | `--no-llm` | off | stop after stage 4; skip the LLM, emit `insight: null` |
+| `evaluate` | `--input` | `out/insights.json` | saved output file to re-verify offline |
+
+`preprocess` also writes `data/segment_map.json` (pass A's segment vocabulary);
+that path is fixed, not a flag. `--id` and `--no-llm` exist only on `run`.
+
+```bash
+# Run one row, offline, and write it somewhere other than out/insights.json.
+uv run python -m smart_insights run --id 7 --no-llm --output out/row7.json
+
+# Benchmark a different enriched artifact (e.g. a regenerated copy).
+uv run python -m smart_insights clean --input data/enriched.json
+
+# Enrich an alternate raw dataset into an alternate artifact.
+uv run python -m smart_insights preprocess --input data/optinmonster_users.json --output data/enriched.json
+
+# Re-verify the committed real output instead of the default out/insights.json.
+uv run python -m smart_insights evaluate --input examples/sample_insights.json
+```
+
 ## Row status
 
 Every row in `out/insights.json` carries a `status` — how the pipeline *ended*

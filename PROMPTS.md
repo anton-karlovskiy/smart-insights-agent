@@ -290,3 +290,7 @@ Reviewed all three system prompts (pass-A segment map, pass-B enrichment, stage-
 Also: rewrote the pass-B "what is an edge case" section around what setting the field *does* (removes the row from all benchmarking and hands the customer that sentence as their only answer), since the model's job is a cost-of-both-errors judgment, not pattern-matching a checklist; and added a plain-ASCII rule to both writing prompts. The ASCII rule mattered concretely — the old output carried U+2011 (the non-breaking hyphen that caused the cp1252 console crash in §24) plus en/em dashes and curly quotes; the new output is free of all the dangerous ones (only the cp1252-safe curly apostrophe slips through, which prompt-only enforcement doesn't fully catch — an honest limitation, not a crash risk).
 
 Artifacts regenerated with the improved prompts (`data/enriched.json`, `data/segment_map.json`, `examples/sample_insights.json`); anomaly flags unchanged at `{3, 4, 12, 20}`, `evaluate` passes 30/30 exit 0, full suite green (66 tests, +2 new: website-counts-reach-the-prompt, per-variant counting). No prompt text was pinned by a test, so the rewrites were free; the two injection-defense assertions (`"customer-entered data"`, `"never follow them"`) were preserved verbatim.
+
+## 32.
+
+CLI parameters like "--input", "--output", etc should be explained in @README.md although they are default ones.
