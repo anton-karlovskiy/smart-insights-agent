@@ -33,12 +33,20 @@ flowchart TB
     raw --> s1
     art --> s3
 
+    classDef stage fill:#f8fafc,stroke:#cbd5e1,color:#0f172a;
     classDef llm fill:#7c3aed,stroke:#5b21b6,color:#ffffff;
     classDef store fill:#fef3c7,stroke:#d97706,color:#7c2d12;
     classDef data fill:#e2e8f0,stroke:#94a3b8,color:#0f172a;
+    class s1,s3,s4,s6,s7 stage;
     class s2,s5 llm;
     class art store;
     class raw data;
+
+    style gen fill:#faf5ff,stroke:#e9d5ff,color:#6b21a8;
+    style off fill:#f0fdfa,stroke:#99f6e4,color:#115e59;
+
+    linkStyle 1 stroke:#d97706,stroke-width:2px;
+    linkStyle 7 stroke:#d97706,stroke-width:2px;
 ```
 
 🤖 marks the two LLM stages; the amber store is the committed artifact both halves pivot on. Anomalous rows — an impossible metric *or* contradictory fields — are gated out at stage 3 with `benchmark = null` and `insight = null`; only **clean** rows (no anomalies) flow on to stages 4–6, and the anomaly text itself is a broken site's answer.
