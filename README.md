@@ -197,12 +197,13 @@ The 30 rows are an instance of the input schema, not the scope of the design. No
 - **Failure is per-row, never per-batch.** A refusal, a malformed parse, or an ungrounded number retries once and then lands as `needs_review` with a reason. No run dies on one bad row, and no bad row is silently dropped.
 - **Customer free text is quoted to the model, never obeyed** — the same framing holds whether the notes come from a mock file or a live CRM export.
 
-Two optimizations are identified and deliberately deferred (SPEC §10), each noted at the code that would change:
+Three optimizations are identified and deliberately deferred (SPEC §10), each noted at the code that would change:
 
 | Tweak | Where | Why it waits |
 |-------|-------|--------------|
 | Chunk the variant list; move the per-row stage-2 and insight calls to the **Batch API** (~50% cheaper, 24h window) | `normalize.py:7`, `benchmark.py:6` | 30 rows run sequentially in seconds; batching buys nothing at this size |
 | Summarize each segment's top setups **once** and reference that shared summary, instead of joining the same performers' notes into every peer's prompt | `benchmark.py:6` | Duplication is negligible at 30 rows; it is the dominant prompt cost at scale |
+| Fan out the per-row insight calls **concurrently** instead of the current sequential waterfall (each row's `facts` are self-contained, so ordering does not matter) | `__main__.py:165` | 30 sequential round-trips finish in seconds; concurrency only pays off at volume |
 
 Everything else — persistence, concurrency, auth, a web UI, multi-metric support — is out of scope for a 3–4h prototype by choice, not by oversight.
 

@@ -361,3 +361,8 @@ Strong codebase, no high-severity issues. All 73 tests pass offline, ruff and st
 - High test quality: retry paths, truncation-as-ValidationError, blank-anomaly coercion, and the TTY/non-TTY progress contract all pinned.
 
 The above is the code review result across the project. Please handle all issues from it.
+
+## 38.
+
+Now, when generating insights across data rows, LLM API is called in a linear way - waterfall. It's not a best practice. We should call LLM APIs in parallel.
+For now, it's a prototype so I'm fine with the current handling. But I think we should add a TODO to @README.md for that.

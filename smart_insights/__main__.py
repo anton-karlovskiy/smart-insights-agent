@@ -162,6 +162,11 @@ def _cmd_run(args: argparse.Namespace) -> int:
             return 1
 
     entries = []
+    # Scaling note: the per-row insight calls run sequentially — one LLM
+    # round-trip finishes before the next begins. At 30 rows this is seconds;
+    # for large real-world data the independent calls should fan out
+    # concurrently (each row's facts are self-contained, so ordering does not
+    # matter). Out of scope for this prototype.
     with Progress("insights", len(selected_rows)) as progress:
         for row in selected_rows:
             progress.start(f"row {row.id} {row.website_url}")
