@@ -81,7 +81,7 @@ cp .env.example .env       # add OPENAI_API_KEY — only needed for step 4 below
 From a fresh clone to `out/insights.json`. Steps 1–3 need no API key, because they read the committed stage-2 artifacts (see below); only step 4 calls the model.
 
 ```bash
-# 1. Confirm the checkout is sound. All 73 tests run offline, LLM mocked.
+# 1. Confirm the checkout is sound. All tests run offline, LLM mocked.
 uv run pytest
 
 # 2. See the deterministic half of the pipeline: stages 3-4.
@@ -106,10 +106,10 @@ uv run python -m smart_insights evaluate          # defaults to out/insights.jso
 | 4 `run` | `data/enriched.json` | `out/insights.json` — one recommendation per clean row | **yes** |
 | 5 `evaluate` | `out/insights.json` | per-row pass/fail, exit 0 or 1 | no |
 
-Step 5 is the safety gate: each output row carries the `facts` its recommendation was grounded in, so `evaluate` can re-run every `validate.py` check from the file alone and exit nonzero if any row fails. Point it at the committed real output to check this repo without a key of your own:
+Step 5 is the safety gate: each output row carries the `facts` its recommendation was grounded in, so `evaluate` can re-run every `validate.py` check from the file alone and exit nonzero if any row fails. With no arguments it reads the committed real output (`out/insights.json`), so you can check this repo without a key of your own:
 
 ```bash
-uv run python -m smart_insights evaluate --input examples/sample_insights.json
+uv run python -m smart_insights evaluate
 ```
 
 Stage 2 is deliberately *not* part of that sequence. It is the one command that must hit the API, and it exists to regenerate the committed artifacts — run it only when the input dataset or the stage-2 prompts change:
@@ -130,25 +130,22 @@ Every flag has a default that reproduces the runs above, so the commands work wi
 | | `--output` | `data/enriched.json` | where the enriched rows are written |
 | `clean` | `--input` | `data/enriched.json` | committed artifact to benchmark |
 | `run` | `--input` | `data/enriched.json` | committed artifact to run stages 3–7 over |
-| | `--output` | `out/insights.json` | where the per-row insights are written |
-| | `--id N` | all rows | run a single row by `id` — cheap debugging |
+| | `--output` | `out/insights.json` | where insights are written (full-run default; `--id` derives its own, below) |
+| | `--id N` | all rows | run a single row by `id`; defaults its output to `out/insights.row<ID>.json` so the committed full run is never clobbered — cheap debugging |
 | | `--no-llm` | off | stop after stage 4; skip the LLM, emit `insight: null` |
 | `evaluate` | `--input` | `out/insights.json` | saved output file to re-verify offline |
 
 `preprocess` also writes `data/segment_map.json` (pass A's segment vocabulary); that path is fixed, not a flag. `--id` and `--no-llm` exist only on `run`.
 
 ```bash
-# Run one row, offline, and write it somewhere other than out/insights.json.
-uv run python -m smart_insights run --id 7 --no-llm --output out/row7.json
+# Run one row, offline. --id writes its own out/insights.row7.json, never the committed full run.
+uv run python -m smart_insights run --id 7 --no-llm
 
 # Benchmark a different enriched artifact (e.g. a regenerated copy).
 uv run python -m smart_insights clean --input data/enriched.json
 
 # Enrich an alternate raw dataset into an alternate artifact.
 uv run python -m smart_insights preprocess --input data/optinmonster_users.json --output data/enriched.json
-
-# Re-verify the committed real output instead of the default out/insights.json.
-uv run python -m smart_insights evaluate --input examples/sample_insights.json
 ```
 
 ## Row status
@@ -173,9 +170,9 @@ Three generated files are checked into git rather than produced at runtime. The 
 |----------|-----------|---------------|---------------|
 | `data/enriched.json` | `preprocess` (stage 2) | every input row plus `canonical_industry_segment`, `cleaned_setup_notes`, `edge_case_anomaly` | It is the input to stages 3–7 and to every test. Re-deriving it per run would let benchmark numbers shift between runs on identical data. |
 | `data/segment_map.json` | `preprocess` (stage 2, pass A) | the derived segment vocabulary + the variant→segment mapping | The model's vocabulary choice is a judgment call; committing it makes it auditable and pins every downstream run to the same segments. |
-| `examples/sample_insights.json` | `run` (stage 7) | a real full-run output, all 30 rows | Lets a reader see genuine gpt-5 recommendations and run `evaluate` against them without a key. All 30 rows pass. |
+| `out/insights.json` | `run` (stage 7) | a real full-run output, all 30 rows | Lets a reader see genuine gpt-5 recommendations and run `evaluate` against them without a key. All 30 rows pass. |
 
-`out/` is gitignored, so working runs never pollute the diff — `run` writes there, and `examples/sample_insights.json` is a promoted copy of one such run.
+`run` writes to `out/insights.json`, and that file is committed as the real reference output. Only that path is tracked; other files under `out/` (e.g. single-row `--output` runs) stay gitignored, so working runs never pollute the diff.
 
 ## Trap handling (sample dataset)
 
@@ -229,4 +226,4 @@ uv run mypy                           # static types, strict over smart_insights
 
 The API takes effort as `reasoning={"effort": ...}` on the same `responses.parse()` call, ranging from `minimal` (latency-critical, barely any reasoning tokens) through the `medium` default up to `high` (hard reasoning, paid for in tokens and latency) — exact levels vary by model, so check the [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) against whatever `MODEL` is set to. Reasoning tokens are billed as output tokens, which is also why `MAX_OUTPUT_TOKENS` sits at 8192: they are spent from that same budget.
 
-So the fix is a small per-stage config — model plus effort — and then an evaluation, because neither is a guess worth shipping unmeasured: run the cheaper/lighter setting over the same committed inputs, diff against `examples/sample_insights.json`, and keep the downgrade only where quality holds. At 30 rows the saving is pennies, which is why this is written down rather than done.
+So the fix is a small per-stage config — model plus effort — and then an evaluation, because neither is a guess worth shipping unmeasured: run the cheaper/lighter setting over the same committed inputs, diff against `out/insights.json`, and keep the downgrade only where quality holds. At 30 rows the saving is pennies, which is why this is written down rather than done.

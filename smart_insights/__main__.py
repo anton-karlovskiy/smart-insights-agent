@@ -41,7 +41,12 @@ def build_parser() -> argparse.ArgumentParser:
         "run", help="stages 3-7: benchmark, insight, validation, report"
     )
     run_parser.add_argument("--input", default="data/enriched.json")
-    run_parser.add_argument("--output", default="out/insights.json")
+    run_parser.add_argument(
+        "--output",
+        default=None,
+        help="output path (default: out/insights.json for a full run, "
+        "out/insights.row<ID>.json for --id so the committed full run is never clobbered)",
+    )
     run_parser.add_argument("--id", type=int, default=None, help="run a single row")
     run_parser.add_argument("--no-llm", action="store_true", help="stop after stage 4")
 
@@ -123,17 +128,28 @@ def _cmd_run(args: argparse.Namespace) -> int:
 
     rows = _prepare_rows(args.input)
 
+    # A full run defaults to out/insights.json (the committed reference output);
+    # --id defaults to its own out/insights.row<ID>.json so debugging one row
+    # never clobbers that committed file. An explicit --output always wins.
+    output_path = args.output
     selected_rows = rows
     if args.id is not None:
         selected_rows = [row for row in rows if row.id == args.id]
         if not selected_rows:
             print(f"error: no row with id {args.id}", file=sys.stderr)
             return 1
+        if output_path is None:
+            from pathlib import Path
+
+            base = Path("out/insights.json")
+            output_path = str(base.with_name(f"{base.stem}.row{args.id}{base.suffix}"))
         print(
-            f"note: --id writes only row {args.id} to {args.output}, replacing any "
-            "full run; a later `evaluate` then checks only that row.",
+            f"note: --id writes only row {args.id} to {output_path}; run "
+            f"`evaluate --input {output_path}` to check just that row.",
             file=sys.stderr,
         )
+    if output_path is None:
+        output_path = "out/insights.json"
 
     client = None
     if not args.no_llm:
@@ -171,9 +187,9 @@ def _cmd_run(args: argparse.Namespace) -> int:
             entries.append(entry)
             progress.advance(f"row {row.id} {entry['status']}")
 
-    write_insights(entries, args.output)
+    write_insights(entries, output_path)
     print_run_summary(entries)
-    print(f"wrote {args.output}")
+    print(f"wrote {output_path}")
     return 0
 
 

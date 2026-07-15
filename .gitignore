@@ -3,9 +3,11 @@
 .env.*
 !.env.example
 
-# Pipeline output. The committed sample lives in examples/sample_insights.json
-# (see SPEC.md §7) so reviewers without an API key can run `evaluate` against it.
-out/
+# Pipeline output. The committed real run is out/insights.json
+# so reviewers without an API key can run `evaluate` against it; other ad-hoc
+# output files (e.g. single-row --output runs) stay out of the diff.
+out/*
+!out/insights.json
 
 # Python
 __pycache__/
