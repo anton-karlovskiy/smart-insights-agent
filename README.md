@@ -49,6 +49,8 @@ offline with no API key.
                     +-- OR edge_case_anomaly is set. Anomalous rows are gated out
                     |   here and stay out: benchmark = null, insight = null, and
                     |   the anomaly text *is* their "fix your setup" answer.
+                    |   A CLEAN row is one with no anomalies -- the complement of
+                    |   the above -- and only clean rows flow on to stages 4-6.
                     v
  4. benchmark       [python]   per-segment mean/median/min/max opt-in rate, plus
                     |          up to three top performers above this row.
@@ -73,6 +75,26 @@ Two ideas carry the design:
 2. **Anomalous rows are gated out early and stay out.** A broken site gets a
    diagnosis, not marketing advice: a dead tracking script means fix the
    install, not try exit intent.
+
+### The `facts` dict
+
+`facts` is the per-clean-row bundle stage 4 builds and stage 5 hands the model —
+**the model's entire universe.** It is exactly what the LLM sees, and the sole
+set of numbers a recommendation is allowed to cite; stage 6 rejects any number
+in the prose that is not in this bundle. One row's `facts` holds:
+
+- `id`, `website_url`, `canonical_industry_segment` — who this site is;
+- `opt_in_rate`, `cleaned_setup_notes` — its own rate and how its campaign is set
+  up;
+- `benchmark` — the segment's mean/median/min/max opt-in rate and the
+  `low_confidence` flag: where this site stands against its peers;
+- `top_performers` — up to three better-performing peers in the same segment,
+  each with its `opt_in_rate` and `cleaned_setup_notes`: concrete setups doing
+  better, for the model to draw an action from.
+
+Anomalous rows get no `facts` (no benchmark, no insight). Each output row carries
+its `facts` back, which is what lets `evaluate` re-run the grounding check
+offline.
 
 ## Setup
 
