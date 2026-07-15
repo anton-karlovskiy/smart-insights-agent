@@ -325,16 +325,3 @@ cheaper/lighter setting over the same committed inputs, diff against
 `examples/sample_insights.json`, and keep the downgrade only where quality
 holds. At 30 rows the saving is pennies, which is why this is written down
 rather than done.
-
-## Video outline (3-4 min)
-
-1. The dataset: 30 messy rows — impossible rates, dead trackers, contradicting
-   industries (30s).
-2. `clean`: derived segments, anomaly gating, benchmark table — all offline,
-   all deterministic (45s).
-3. `run` on one row: the facts dict (the model's entire universe), the one
-   recommendation back (60s).
-4. `evaluate`: the grounding check catching an invented number; `needs_review`
-   instead of silent failure (45s).
-5. Architecture recap: LLM at two points only, committed artifacts, everything
-   else testable Python (30s).
