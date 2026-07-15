@@ -5,7 +5,7 @@ from typing import Any
 from smart_insights.models import Insight
 from smart_insights.validate import evaluate_entries, validate_insight
 
-FACTS = {
+FACTS: dict[str, Any] = {
     "id": 1,
     "website_url": "https://site1.com",
     "canonical_industry_segment": "ecommerce_retail",
@@ -57,6 +57,19 @@ class TestGrounding:
     def test_trailing_zeros_and_percent_normalized(self):
         # facts contain 2.7 and 10; "2.70%" and "10%" must both pass
         assert validate_insight(insight("The median is 2.70% and you offer 10% off."), FACTS) == []
+
+
+class TestConfidence:
+    def test_low_confidence_segment_cannot_be_high(self):
+        facts = {**FACTS, "benchmark": {**FACTS["benchmark"], "low_confidence": True}}
+        problems = validate_insight(
+            Insight(recommendation="Add an exit-intent trigger.", confidence="high"), facts
+        )
+        assert any("low_confidence" in p for p in problems)
+
+    def test_low_confidence_segment_allows_medium(self):
+        facts = {**FACTS, "benchmark": {**FACTS["benchmark"], "low_confidence": True}}
+        assert validate_insight(insight("Add an exit-intent trigger."), facts) == []
 
 
 class TestSanity:

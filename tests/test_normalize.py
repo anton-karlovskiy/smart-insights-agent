@@ -81,6 +81,19 @@ class TestValidateSegmentMap:
         with pytest.raises(ValueError, match="'ecommerce', which is not in segments"):
             validate_segment_map(["SaaS", "eCommerce"], resp)
 
+    def test_rejects_exact_duplicate_variant(self):
+        """Identical variant spellings collapse last-wins in the mapping dict;
+        the count check catches them before that silent merge."""
+        resp = SegmentMapResponse(
+            segments=["saas", "ecommerce"],
+            mapping=[
+                VariantMapping(variant="SaaS", segment="saas"),
+                VariantMapping(variant="SaaS", segment="ecommerce"),
+            ],
+        )
+        with pytest.raises(ValueError, match="mapped more than once"):
+            validate_segment_map(["SaaS"], resp)
+
     def test_rejects_fold_colliding_keys_with_conflicting_segments(self):
         resp = response(["saas", "ecommerce"], {"SaaS": "saas", "saas ": "ecommerce"})
         with pytest.raises(ValueError, match="differ only in case/whitespace"):

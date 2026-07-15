@@ -12,6 +12,8 @@ calls, to the Batch API. Out of scope for this prototype.
 
 from __future__ import annotations
 
+from collections import Counter
+
 from smart_insights.models import RawRow, SegmentMapResponse
 
 
@@ -51,6 +53,15 @@ def validate_segment_map(variants: list[str], response: SegmentMapResponse) -> d
     declared_segments = set(response.segments)
 
     problems: list[str] = []
+    # The mapping dict silently drops exact-duplicate variant keys (last wins);
+    # the fold-key loop below only catches case/whitespace collisions.
+    duplicate_variants = sorted(
+        variant
+        for variant, count in Counter(pair.variant for pair in response.mapping).items()
+        if count > 1
+    )
+    if duplicate_variants:
+        problems.append(f"variant(s) mapped more than once: {duplicate_variants}")
     segment_by_key: dict[str, str] = {}
     for mapped_variant, segment in mapping.items():
         key = _lookup_key(mapped_variant)

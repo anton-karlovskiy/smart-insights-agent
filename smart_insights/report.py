@@ -75,6 +75,10 @@ def print_run_summary(entries: list[dict[str, Any]]) -> None:
         if entry["insight"]:
             verdict = entry["insight"]["recommendation"]
             verdict += f"  [confidence: {entry['insight']['confidence']}]"
+            if entry["status"] == "needs_review":
+                # A needs_review row keeps its last, invalid recommendation; mark
+                # it so the summary never reads it as an accepted answer.
+                verdict = "NEEDS REVIEW (failed validation) -> " + verdict
         elif entry["edge_case_anomaly"]:
             verdict = f"ANOMALY: {entry['edge_case_anomaly']}"
         elif entry["impossible_metric_anomaly"]:

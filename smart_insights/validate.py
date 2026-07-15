@@ -80,6 +80,12 @@ def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
         if _canonical_number(token) not in allowed_numbers:
             problems.append(f"number {token!r} does not appear in this row's facts")
 
+    # "A segment flagged low_confidence is never high" is a rule code can check,
+    # so enforce it here rather than trusting the prompt; evaluate re-checks it.
+    benchmark = facts.get("benchmark")
+    if benchmark and benchmark.get("low_confidence") and insight.confidence == "high":
+        problems.append("confidence is 'high' but the segment is flagged low_confidence")
+
     return problems
 
 

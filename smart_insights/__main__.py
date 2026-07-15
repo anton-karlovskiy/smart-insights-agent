@@ -24,6 +24,11 @@ def build_parser() -> argparse.ArgumentParser:
     )
     preprocess_parser.add_argument("--input", default="data/optinmonster_users.json")
     preprocess_parser.add_argument("--output", default="data/enriched.json")
+    preprocess_parser.add_argument(
+        "--segment-map",
+        default=None,
+        help="segment map output path (default: segment_map.json beside --output)",
+    )
 
     clean_parser = subcommands.add_parser(
         "clean",
@@ -59,13 +64,18 @@ def main(argv: list[str] | None = None) -> int:
     args = build_parser().parse_args(argv)
 
     if args.command == "preprocess":
+        from pathlib import Path
+
         from smart_insights import get_client
         from smart_insights.preprocess import preprocess
 
+        # Default the map beside --output so redirecting output never clobbers
+        # the committed map while enriched.json goes elsewhere (a mismatched pair).
+        segment_map_path = args.segment_map or str(Path(args.output).with_name("segment_map.json"))
         try:
             # PreprocessError is a RuntimeError: a missing key and a dead API
             # both end this command the same way — a message, not a traceback.
-            preprocess(args.input, args.output, get_client())
+            preprocess(args.input, args.output, get_client(), segment_map_path)
         except RuntimeError as exc:
             print(f"error: {exc}", file=sys.stderr)
             return 1
@@ -119,6 +129,11 @@ def _cmd_run(args: argparse.Namespace) -> int:
         if not selected_rows:
             print(f"error: no row with id {args.id}", file=sys.stderr)
             return 1
+        print(
+            f"note: --id writes only row {args.id} to {args.output}, replacing any "
+            "full run; a later `evaluate` then checks only that row.",
+            file=sys.stderr,
+        )
 
     client = None
     if not args.no_llm:

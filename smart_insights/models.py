@@ -9,6 +9,7 @@ variant->segment mapping is a list of pairs, not a dict.
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 from typing import Literal
 
@@ -23,7 +24,10 @@ class RawRow(BaseModel):
     id: int
     website_url: str
     reported_industry: str
-    opt_in_rate: float
+    # allow_inf_nan=False rejects NaN/Infinity at load. Pydantic accepts them
+    # for float by default, and a NaN rate slips the [0,100] audit (every
+    # comparison against NaN is false) then poisons its whole segment's stats.
+    opt_in_rate: float = Field(allow_inf_nan=False)
     current_setup_notes: str
 
 
@@ -162,12 +166,24 @@ _RAW_ROW_LIST = TypeAdapter(list[RawRow])
 _ENRICHED_ROW_LIST = TypeAdapter(list[EnrichedRow])
 
 
+def _reject_duplicate_ids(ids: list[int]) -> None:
+    """Ids key several downstream dicts (segment map application, facts-build,
+    evaluate); a duplicate would silently merge two sites. Fail loudly here."""
+    duplicates = sorted(id_ for id_, count in Counter(ids).items() if count > 1)
+    if duplicates:
+        raise ValueError(f"duplicate row id(s): {duplicates}")
+
+
 def load_raw_rows(path: str | Path) -> list[RawRow]:
-    return _RAW_ROW_LIST.validate_json(Path(path).read_text(encoding="utf-8"))
+    rows = _RAW_ROW_LIST.validate_json(Path(path).read_text(encoding="utf-8"))
+    _reject_duplicate_ids([row.id for row in rows])
+    return rows
 
 
 def load_enriched_rows(path: str | Path) -> list[EnrichedRow]:
-    return _ENRICHED_ROW_LIST.validate_json(Path(path).read_text(encoding="utf-8"))
+    rows = _ENRICHED_ROW_LIST.validate_json(Path(path).read_text(encoding="utf-8"))
+    _reject_duplicate_ids([row.id for row in rows])
+    return rows
 
 
 def dump_enriched_rows(rows: list[EnrichedRow], path: str | Path) -> None:

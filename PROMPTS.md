@@ -312,3 +312,52 @@ It should look professional and organized without inventing irrelevant stuff.
 
 Review the modules and the relevant folder structures across the project. Improve/organize if you need.
 After that, you will have to check @SPEC.md and reflect the updated project layout.
+
+## 37.
+
+## Code review findings (2026-07-14)
+
+Full-codebase general review of `smart-insights-agent` by Claude Code (Fable 5).
+Status: findings recorded, **not yet addressed** — fixes to be applied later.
+
+### Verdict
+
+Strong codebase, no high-severity issues. All 73 tests pass offline, ruff and strict mypy clean, `evaluate` passes 30/30 on `examples/sample_insights.json`. The two core invariants (anomalous rows never benchmarked/insighted; normalization reads `reported_industry` alone) hold everywhere. The four bugs below are robustness gaps against hostile-but-plausible real input, invisible on the committed sample.
+
+### Bugs (low severity, real)
+
+1. **NaN opt-in rate passes the audit and poisons segment benchmarks** — `audit.py:16`, `models.py:26`. Pydantic v2 `validate_json` accepts `NaN` for floats by default; `rate < 0 or rate > 100` is false for NaN, so a NaN row counts as clean and `statistics.fmean` turns every stat in its segment into NaN. `Infinity` is caught, NaN is not.
+   Fix: `Field(allow_inf_nan=False)` on `RawRow.opt_in_rate`, or write the audit as `not (0 <= rate <= 100)` (NaN-safe).
+
+2. **`preprocess --output X` still writes the segment map to hardcoded `data/segment_map.json`** — `preprocess.py:262`, `__main__.py:25`. No `--segment-map` CLI flag, and the default doesn't follow `--output`, so redirecting output clobbers the committed map while `data/enriched.json` stays stale — the mismatched-artifact-pair state the "written together" comment exists to prevent.
+   Fix: add the CLI flag or derive the map path from `--output`.
+
+3. **Exact-duplicate mapping keys collapse silently in `validate_segment_map`** — `normalize.py:50`. The dict comprehension makes identical spellings with conflicting segments last-wins before any check; only case/whitespace-fold conflicts are caught.
+   Fix: compare `len(response.mapping)` against the dict size.
+
+4. **Duplicate row ids never rejected** — `models.py:165`. Ids key several downstream dicts (`apply_segment_map`, `build_insight_facts`'s `row_by_id`, evaluate); a duplicated id silently merges rows instead of failing loudly at stage 1.
+   Fix: uniqueness check in `load_raw_rows` / `load_enriched_rows`.
+
+### Spec/code drift (surface, don't silently "fix" either side)
+
+5. CLAUDE.md says "60 tests"; the suite has 73 (README already corrected in commit 549475e, CLAUDE.md Status section wasn't).
+6. Output rows carry a `status_reason` field (`__main__.py:155`) not in SPEC §4.7's schema list. Useful, but undocumented; `evaluate` ignores it.
+7. Pass-A worst case is 4 API calls, not 2 (`preprocess.py:164` + `:221`): `_parse_with_retry`'s parse retry nests inside `derive_segment_map`'s validation retry. Defensible (different failure classes) but SPEC §4.2 reads "retry once, fail loudly after that" and the nesting is unnoted.
+
+### Suggested improvements
+
+8. **Move the "low_confidence segment is never high confidence" rule from prompt to validator** (`validate.py:55`). Mechanically checkable (`facts["benchmark"]["low_confidence"] and confidence == "high"`), fits the "deterministic code owns every decision a rule can make" ethos, and `evaluate` would then re-check it for free.
+9. `run --id N` overwrites `out/insights.json` with a one-row file; a bare `evaluate` afterwards silently checks only that row (`__main__.py:159`). Warn in README or skip the write for `--id`.
+10. Minor grounding-check slack (informational, errs permissive only): digits inside `id`, `website_url`, and `\uXXXX` escapes enter the permitted set; "15,000" tokenizes as `15` + `000` so comma forms only pass when the notes use the same form.
+11. `evaluate_entries` (`validate.py:107`) is used only by tests; the CLI loops `evaluate_entry` itself for progress.
+12. Nits: insight prompt says "under 500 characters" vs validator's 600 cap (sensible headroom, undocumented); `build_insight_facts` rebuilds `row_by_id` per call (O(n²), irrelevant at 30 rows); `print_run_summary` prints a needs_review row's kept invalid recommendation with no inline marker.
+
+### Notably good
+
+- Anomaly-gate invariant enforced at three independent layers (compute, facts-build raises, evaluate re-checks).
+- Prompt-injection framing ("data, never instructions") applied at both LLM call sites and asserted in tests.
+- `normalize_ascii` as a pydantic validator makes the ASCII guarantee structural, not hoped-for.
+- Committed artifacts internally consistent (30/30 ids, every segment in the derived set, exactly rows 3/4/12/20 edge-flagged, 8/20 impossible-flagged).
+- High test quality: retry paths, truncation-as-ValidationError, blank-anomaly coercion, and the TTY/non-TTY progress contract all pinned.
+
+The above is the code review result across the project. Please handle all issues from it.
