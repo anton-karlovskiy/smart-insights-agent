@@ -38,7 +38,7 @@ class Benchmark(BaseModel):
     max_opt_in_rate: float
     canonical_industry_segment: str
     top_performer_ids: list[int]
-    # §4.4 thin-segment guard: a non-"other" segment with fewer clean rows
+    # Thin-segment guard: a non-"other" segment with fewer clean rows
     # than benchmark.MIN_SEGMENT_SIZE is flagged rather than silently trusted.
     low_confidence: bool
 
@@ -88,7 +88,7 @@ class EnrichedRow(RawRow):
 
     @property
     def is_anomalous(self) -> bool:
-        """Anomalous rows get no benchmark and no insight (SPEC §4.1)."""
+        """Anomalous rows get no benchmark and no insight (the anomaly invariant)."""
         return self.impossible_metric_anomaly or self.edge_case_anomaly is not None
 
     _blank_anomaly_is_none = field_validator("edge_case_anomaly")(

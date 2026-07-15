@@ -135,7 +135,7 @@ def _cmd_run(args: argparse.Namespace) -> int:
         for row in selected_rows:
             progress.start(f"row {row.id} {row.website_url}")
             if row.is_anomalous:
-                # Processed correctly: the anomaly fields tell the story (§4.7).
+                # Processed correctly: the anomaly fields tell the story.
                 entry = build_output_entry(row, facts=None, status="ok")
                 error = None
             elif args.no_llm:

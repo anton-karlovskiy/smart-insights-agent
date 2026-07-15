@@ -13,6 +13,8 @@ from typing import Any
 
 from smart_insights.models import Insight
 
+# Headroom over the "under 500" the prompt asks for: the model aiming at 500
+# should not be failed for landing at 540, but a runaway paragraph still trips.
 MAX_RECOMMENDATION_CHARS = 600
 
 # Whole numbers 0-10 pass unconditionally so ordinary prose ("2-step",
@@ -27,7 +29,7 @@ _MULTI_ACTION_PHRASES = ("additionally", "also consider", "you should also", "an
 
 # The fields benchmark.build_insight_facts put in front of the model. An output
 # row carries every one of them, so `evaluate` can rebuild the facts a saved
-# recommendation was grounded in and re-check it offline (§4.7).
+# recommendation was grounded in and re-check it offline.
 _FACTS_KEYS_IN_OUTPUT_ROW = (
     "id",
     "website_url",
@@ -47,13 +49,13 @@ def _canonical_number(token: str) -> str:
 
 
 def permitted_numbers(facts: dict[str, Any]) -> set[str]:
-    """The serialized facts are the universe of permitted numbers (§4.4)."""
+    """The serialized facts are the universe of permitted numbers."""
     serialized_facts = json.dumps(facts, sort_keys=True)
     return {_canonical_number(token) for token in _NUMBER_TOKEN.findall(serialized_facts)}
 
 
 def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
-    """All §4.6 checks; returns every problem found (empty list = valid).
+    """All the output-validation checks; returns every problem found (empty list = valid).
     Percent signs need no special handling: the token regex captures only
     the digits of "5.2%"."""
     problems: list[str] = []
@@ -82,7 +84,7 @@ def validate_insight(insight: Insight, facts: dict[str, Any]) -> list[str]:
 
 
 def evaluate_entry(entry: dict[str, Any]) -> list[str]:
-    """Re-run every check against one saved output row (§4.7 schema) — the row
+    """Re-run every check against one saved output row (the report schema) — the row
     carries everything the grounding check reads, so this works offline.
     Returns the problems found; an empty list means the row passes."""
     problems: list[str] = []

@@ -6,7 +6,7 @@ Pass B: one structured-output call per row -> cleaned_setup_notes +
 edge_case_anomaly.
 
 Both calls brief the model on the data before stating the task, and frame all
-customer text as data, never instructions (SPEC §1).
+customer text as data, never instructions.
 """
 
 from __future__ import annotations
@@ -36,10 +36,10 @@ from smart_insights.progress import Progress, status
 
 MAX_OUTPUT_TOKENS = 8192  # gpt-5 spends reasoning tokens from this budget too
 
-# One call, then one retry carrying the validation error (SPEC §4.2).
+# One call, then one retry carrying the validation error.
 MAX_ATTEMPTS = 2
 
-# The client is the mockable seam (SPEC §4.2): typed Any so tests can inject a
+# The client is the mockable seam: typed Any so tests can inject a
 # mock without the real OpenAI class.
 _Response = TypeVar("_Response", bound=BaseModel)
 
@@ -197,7 +197,7 @@ def derive_segment_map(
 ) -> tuple[list[str], dict[str, str]]:
     """Pass A: one call over the deduplicated variants, validated by
     normalize.validate_segment_map, retried once with the validation error
-    appended, loud failure after that (SPEC §4.2).
+    appended, loud failure after that.
 
     Each variant carries the number of websites that reported it: a segment is
     a benchmarking peer group, and the model cannot honour "avoid segments too

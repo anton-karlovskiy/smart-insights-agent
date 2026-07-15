@@ -7,7 +7,7 @@ field is consulted; contradictions belong in `edge_case_anomaly`, never here.
 Scaling note: the dedupe already keeps the derive call cheap (token cost
 scales with distinct wordings, not row count), but past a few thousand
 distinct variants, chunk the list and move it, with the per-row stage-2
-calls, to the Batch API. Out of scope for this prototype (SPEC §10).
+calls, to the Batch API. Out of scope for this prototype.
 """
 
 from __future__ import annotations
@@ -28,7 +28,7 @@ def collect_variant_counts(rows: list[RawRow]) -> dict[str, int]:
 
     The counts exist for the pass-A prompt: a segment is a benchmarking peer
     group, so the model is asked to avoid segments too thin to benchmark
-    (SPEC §4.2) — a judgment it cannot make from a bare list of wordings.
+    — a judgment it cannot make from a bare list of wordings.
     """
     first_spelling_by_key: dict[str, str] = {}
     websites_by_key: dict[str, int] = {}

@@ -13,7 +13,7 @@ def build_output_entry(
     row: EnrichedRow, facts: dict[str, Any] | None, status: str
 ) -> dict[str, Any]:
     """One out/insights.json entry: carries everything the grounding check
-    reads (§4.6), so `evaluate` can re-verify from the file alone, offline."""
+    reads, so `evaluate` can re-verify from the file alone, offline."""
     return {
         "id": row.id,
         "website_url": row.website_url,
@@ -90,7 +90,7 @@ def print_run_summary(entries: list[dict[str, Any]]) -> None:
         1 for entry in entries if entry["impossible_metric_anomaly"] or entry["edge_case_anomaly"]
     )
     needs_review_count = sum(1 for entry in entries if entry["status"] == "needs_review")
-    # needs_review rows are excluded from the clean success count (§4.6).
+    # needs_review rows are excluded from the clean success count.
     print(
         f"\n{total} rows: {total - anomalous_count - needs_review_count} clean, "
         f"{anomalous_count} anomalous, {needs_review_count} needs_review"

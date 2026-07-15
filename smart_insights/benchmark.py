@@ -1,14 +1,15 @@
 """Stage 4: deterministic per-segment benchmarks over clean rows only.
 
 The benchmark answers "where you stand"; the facts dict built here is the
-entire universe of numbers the insight LLM may cite (SPEC §4.4, §4.6).
+entire universe of numbers the insight LLM may cite, and the grounding
+check enforces exactly that.
 
 Scaling note: joining up to three performers' notes into every facts dict
 grows each insight prompt, and a segment's leaders repeat across nearly every
 member's facts. Negligible at this scale; for large real-world data,
 summarize each segment's top setups once, reference that shared summary from
 every row's facts, and move the per-row insight calls to the Batch API
-alongside the stage-2 calls (SPEC §10). Out of scope for this prototype.
+alongside the stage-2 calls. Out of scope for this prototype.
 """
 
 from __future__ import annotations
@@ -20,10 +21,10 @@ from smart_insights.models import Benchmark, EnrichedRow
 
 # A mean over two rows is not a peer benchmark: non-"other" segments with
 # fewer clean rows than this are flagged low-confidence, making the pass-A
-# "avoid segments too thin to benchmark" steer checkable by code (SPEC §4.4).
+# "avoid segments too thin to benchmark" steer checkable by code.
 MIN_SEGMENT_SIZE = 3
 
-# How many better-performing peers a row's facts carry as exemplars (SPEC §4.4).
+# How many better-performing peers a row's facts carry as exemplars.
 MAX_TOP_PERFORMERS = 3
 
 
@@ -62,7 +63,7 @@ def compute_benchmarks(rows: list[EnrichedRow]) -> list[EnrichedRow]:
 
 def build_insight_facts(row: EnrichedRow, all_rows: list[EnrichedRow]) -> dict[str, Any]:
     """The per-row facts handed to the insight LLM — exactly what the model
-    sees, and the universe of permitted numbers for grounding (SPEC §4.6).
+    sees, and the universe of permitted numbers for the grounding check.
     Requires a clean, benchmarked row."""
     if row.benchmark is None:
         raise ValueError(f"row {row.id} has no benchmark; anomalous rows get no facts")

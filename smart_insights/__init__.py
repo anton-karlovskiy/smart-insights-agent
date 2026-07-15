@@ -14,7 +14,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from openai import OpenAI
 
-# The one model constant: swapping models is this one line (SPEC §4.5).
+# The one model constant: swapping models is this one line.
 MODEL = "gpt-5"
 
 
