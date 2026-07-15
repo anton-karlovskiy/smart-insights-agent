@@ -206,7 +206,7 @@ def derive_segment_map(
     # Two distinct failure classes retry independently: _parse_with_retry retries
     # an unparseable response, this loop retries a parseable-but-invalid map. So
     # pass A makes up to MAX_ATTEMPTS x MAX_ATTEMPTS API calls in the worst case,
-    # by design — SPEC §4.2's "retry once" is per failure class, not overall.
+    # by design — the "retry once" contract is per failure class, not overall.
     variants = list(variant_counts)
     user_input = (
         "Every distinct reported_industry wording, with the number of customer "
