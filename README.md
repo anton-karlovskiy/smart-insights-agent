@@ -6,50 +6,42 @@ The CLI normalizes that data, benchmarks each site against its industry peers, a
 
 ## Architecture
 
-Seven stages. The LLM appears at exactly two of them (stages 2 and 5); every other stage — and the entire test suite — is deterministic Python that runs offline with no API key.
+Seven stages. The LLM appears at exactly two of them; every other stage — and the entire test suite — is deterministic Python that runs offline with no API key.
 
+```mermaid
+flowchart TB
+    raw[/"data/optinmonster_users.json — 30 raw rows<br/>id · website_url · reported_industry · opt_in_rate · current_setup_notes"/]
+
+    subgraph gen ["Preprocess &nbsp;·&nbsp; runs once &nbsp;·&nbsp; output committed to git"]
+        direction TB
+        s1["<b>1 · load + validate</b><br/>pydantic models · fail loudly on malformed input"]
+        s2["<b>2 · preprocess</b> &nbsp;🤖<br/>A · derive the segment map from reported_industry alone<br/>B · split + polish notes, flag edge_case_anomaly on conflicts"]
+        art[("data/enriched.json &nbsp;+&nbsp; data/segment_map.json")]
+        s1 --> s2 --> art
+    end
+
+    subgraph off ["Analyze &nbsp;·&nbsp; reads the committed artifacts &nbsp;·&nbsp; offline, no API key"]
+        direction TB
+        s3["<b>3 · audit</b><br/>flag impossible metrics · gate anomalous rows out for good"]
+        s4["<b>4 · benchmark</b><br/>per-segment mean / median / min / max + top performers → facts"]
+        s5["<b>5 · insight</b> &nbsp;🤖<br/>facts → recommendation + confidence · may cite no other number"]
+        s6["<b>6 · validate</b><br/>every number must trace to facts · retry once, else needs_review"]
+        s7["<b>7 · report</b><br/>out/insights.json + console summary table"]
+        s3 --> s4 --> s5 --> s6 --> s7
+    end
+
+    raw --> s1
+    art --> s3
+
+    classDef llm fill:#7c3aed,stroke:#5b21b6,color:#ffffff;
+    classDef store fill:#fef3c7,stroke:#d97706,color:#7c2d12;
+    classDef data fill:#e2e8f0,stroke:#94a3b8,color:#0f172a;
+    class s2,s5 llm;
+    class art store;
+    class raw data;
 ```
-       data/optinmonster_users.json          30 raw rows: id, website_url,
-                    |                        reported_industry, opt_in_rate,
-                    |                        current_setup_notes (free text)
-                    v
- 1. load+validate   [python]   pydantic models, fail loudly on malformed input
-                    |
- 2. preprocess      [ LLM  ]   A. derive the segment map from reported_industry
-                    |             values alone ("eCommerce" / "E-comm" /
-                    |             "Retail / Ecom" -> one segment)
-                    |          B. per row: split + polish the notes, and record
-                    |             an edge_case_anomaly when the fields disagree
-                    v
-       data/enriched.json + data/segment_map.json      <-- COMMITTED ARTIFACTS
-                    |                                      run once, not at runtime
-====================|=============================================================
- everything below   |   reads the committed artifacts: offline, no API key
-====================|=============================================================
-                    v
- 3. audit           [python]   impossible_metric_anomaly = rate < 0 or > 100
-                    |
-                    |   a row is ANOMALOUS if impossible_metric_anomaly is true
-                    +-- OR edge_case_anomaly is set. Anomalous rows are gated out
-                    |   here and stay out: benchmark = null, insight = null, and
-                    |   the anomaly text *is* their "fix your setup" answer.
-                    |   A CLEAN row is one with no anomalies -- the complement of
-                    |   the above -- and only clean rows flow on to stages 4-6.
-                    v
- 4. benchmark       [python]   per-segment mean/median/min/max opt-in rate, plus
-                    |          up to three top performers above this row.
-                    |          Clean rows only. -> the `facts` dict
-                    v
- 5. insight         [ LLM  ]   facts -> {recommendation, confidence}.
-                    |          Clean rows only; the model reshapes the facts it
-                    |          is handed and may cite no other number.
-                    v
- 6. validate        [python]   every number in the recommendation must appear in
-                    |          that row's facts. Fail -> retry once with the error
-                    |          appended -> fail again -> mark the row needs_review
-                    v
- 7. report          [python]   out/insights.json + console summary table
-```
+
+🤖 marks the two LLM stages; the amber store is the committed artifact both halves pivot on. Anomalous rows — an impossible metric *or* contradictory fields — are gated out at stage 3 with `benchmark = null` and `insight = null`; only **clean** rows (no anomalies) flow on to stages 4–6, and the anomaly text itself is a broken site's answer.
 
 Two ideas carry the design:
 
