@@ -98,13 +98,13 @@ uv run python -m smart_insights run --id 7        # one row only, cheap debuggin
 uv run python -m smart_insights evaluate          # defaults to out/insights.json
 ```
 
-| Step | Consumes | Produces | API&nbsp;key |
+| Step | Consumes | Produces | API key |
 |------|----------|----------|---------|
-| 1&nbsp;`pytest` | `data/enriched.json`,&nbsp;fixtures | pass/fail | no |
-| 2&nbsp;`clean` | `data/enriched.json` | console:&nbsp;segments,&nbsp;anomaly&nbsp;flags,&nbsp;benchmark&nbsp;table | no |
-| 3&nbsp;`run --no-llm` | `data/enriched.json` | `out/insights.json`&nbsp;with&nbsp;`status: llm_skipped`,&nbsp;`insight: null` | no |
-| 4&nbsp;`run` | `data/enriched.json` | `out/insights.json`&nbsp;—&nbsp;one&nbsp;recommendation&nbsp;per&nbsp;clean&nbsp;row | **yes** |
-| 5&nbsp;`evaluate` | `out/insights.json` | per-row&nbsp;pass/fail,&nbsp;exit&nbsp;0&nbsp;or&nbsp;1 | no |
+| 1 `pytest` | `data/enriched.json`, fixtures | pass/fail | no |
+| 2 `clean` | `data/enriched.json` | console: segments, anomaly flags, benchmark table | no |
+| 3 `run --no-llm` | `data/enriched.json` | `out/insights.json` with `status: llm_skipped`, `insight: null` | no |
+| 4 `run` | `data/enriched.json` | `out/insights.json` — one recommendation per clean row | **yes** |
+| 5 `evaluate` | `out/insights.json` | per-row pass/fail, exit 0 or 1 | no |
 
 Step 5 is the safety gate: each output row carries the `facts` its recommendation was grounded in, so `evaluate` can re-run every `validate.py` check from the file alone and exit nonzero if any row fails. With no arguments it reads the committed real output (`out/insights.json`), so you can check this repo without a key of your own:
 
@@ -124,16 +124,16 @@ uv run python -m smart_insights preprocess   # data/optinmonster_users.json
 
 Every flag has a default that reproduces the runs above, so the commands work with no arguments — the paths below are documented because they are overridable, not because you must set them.
 
-| Command | Flag | Default | What&nbsp;it&nbsp;does |
+| Command | Flag | Default | What it does |
 |---------|------|---------|--------------|
-| `preprocess` | `--input` | `data/optinmonster_users.json` | raw&nbsp;30-row&nbsp;dataset&nbsp;to&nbsp;enrich |
-|  | `--output` | `data/enriched.json` | where&nbsp;the&nbsp;enriched&nbsp;rows&nbsp;are&nbsp;written |
-| `clean` | `--input` | `data/enriched.json` | committed&nbsp;artifact&nbsp;to&nbsp;benchmark |
-| `run` | `--input` | `data/enriched.json` | committed&nbsp;artifact&nbsp;to&nbsp;run&nbsp;stages&nbsp;3–7&nbsp;over |
-|  | `--output` | `out/insights.json` | where&nbsp;insights&nbsp;are&nbsp;written&nbsp;(full-run&nbsp;default;&nbsp;`--id`&nbsp;derives&nbsp;its&nbsp;own,&nbsp;below) |
-|  | `--id N` | all&nbsp;rows | run a single row by `id`; defaults its output to `out/insights.row<ID>.json` so the committed full run is never clobbered — cheap debugging |
-|  | `--no-llm` | off | stop&nbsp;after&nbsp;stage&nbsp;4;&nbsp;skip&nbsp;the&nbsp;LLM,&nbsp;emit&nbsp;`insight: null` |
-| `evaluate` | `--input` | `out/insights.json` | saved&nbsp;output&nbsp;file&nbsp;to&nbsp;re-verify&nbsp;offline |
+| `preprocess` | `--input` | `data/optinmonster_users.json` | raw 30-row dataset to enrich |
+| | `--output` | `data/enriched.json` | where the enriched rows are written |
+| `clean` | `--input` | `data/enriched.json` | committed artifact to benchmark |
+| `run` | `--input` | `data/enriched.json` | committed artifact to run stages 3–7 over |
+| | `--output` | `out/insights.json` | where insights are written (full-run default; `--id` derives its own, below) |
+| | `--id N` | all rows | run a single row by `id`; defaults its output to `out/insights.row<ID>.json` so the committed full run is never clobbered — cheap debugging |
+| | `--no-llm` | off | stop after stage 4; skip the LLM, emit `insight: null` |
+| `evaluate` | `--input` | `out/insights.json` | saved output file to re-verify offline |
 
 `preprocess` also writes `data/segment_map.json` (pass A's segment vocabulary); that path is fixed, not a flag. `--id` and `--no-llm` exist only on `run`.
 
@@ -154,9 +154,9 @@ Every row in `out/insights.json` carries a `status` — how the pipeline *ended*
 
 | `status` | When | `status_reason` |
 |----------|------|-----------------|
-| `ok` | clean&nbsp;row&nbsp;with&nbsp;a&nbsp;grounded&nbsp;recommendation&nbsp;—&nbsp;or&nbsp;an&nbsp;anomalous&nbsp;row,&nbsp;gated&nbsp;out | `null` |
-| `needs_review` | stage 5 failed twice: an ungrounded number, an unparseable answer, or an API error | the&nbsp;failure |
-| `llm_skipped` | `run --no-llm`,&nbsp;so&nbsp;stages&nbsp;5–6&nbsp;never&nbsp;ran | `null` |
+| `ok` | clean row with a grounded recommendation — or an anomalous row, gated out | `null` |
+| `needs_review` | stage 5 failed twice: an ungrounded number, an unparseable answer, or an API error | the failure |
+| `llm_skipped` | `run --no-llm`, so stages 5–6 never ran | `null` |
 
 An anomalous row is `ok`, not a failure: gating it out *is* the right answer, so it lands with `insight: null` and its anomaly field carrying the diagnosis. A `needs_review` row keeps the rejected insight next to the reason it was rejected (`number '105' does not appear in this row's facts`) — the reviewer sees what the model said and why it was thrown out, rather than an absence.
 
@@ -166,11 +166,11 @@ Downstream, `needs_review` rows are excluded from the clean count in the console
 
 Three generated files are checked into git rather than produced at runtime. The reason is the same for all three: **the LLM stages are non-deterministic, and nothing downstream of them may be.** Freezing their output makes every later command, and the whole test suite, reproducible and runnable offline — a reviewer with no API key can still exercise the entire pipeline and read real model output.
 
-| Artifact | Written&nbsp;by | What&nbsp;it&nbsp;holds | Why&nbsp;committed |
+| Artifact | Written by | What it holds | Why committed |
 |----------|-----------|---------------|---------------|
-| `data/enriched.json` | `preprocess`&nbsp;(stage&nbsp;2) | every input row plus `canonical_industry_segment`, `cleaned_setup_notes`, `edge_case_anomaly` | It is the input to stages 3–7 and to every test. Re-deriving it per run would let benchmark numbers shift between runs on identical data. |
-| `data/segment_map.json` | `preprocess`&nbsp;(stage&nbsp;2,&nbsp;pass&nbsp;A) | the&nbsp;derived&nbsp;segment&nbsp;vocabulary&nbsp;+&nbsp;the&nbsp;variant→segment&nbsp;mapping | The model's vocabulary choice is a judgment call; committing it makes it auditable and pins every downstream run to the same segments. |
-| `out/insights.json` | `run`&nbsp;(stage&nbsp;7) | a&nbsp;real&nbsp;full-run&nbsp;output,&nbsp;all&nbsp;30&nbsp;rows | Lets a reader see genuine gpt-5 recommendations and run `evaluate` against them without a key. All 30 rows pass. |
+| `data/enriched.json` | `preprocess` (stage 2) | every input row plus `canonical_industry_segment`, `cleaned_setup_notes`, `edge_case_anomaly` | It is the input to stages 3–7 and to every test. Re-deriving it per run would let benchmark numbers shift between runs on identical data. |
+| `data/segment_map.json` | `preprocess` (stage 2, pass A) | the derived segment vocabulary + the variant→segment mapping | The model's vocabulary choice is a judgment call; committing it makes it auditable and pins every downstream run to the same segments. |
+| `out/insights.json` | `run` (stage 7) | a real full-run output, all 30 rows | Lets a reader see genuine gpt-5 recommendations and run `evaluate` against them without a key. All 30 rows pass. |
 
 `run` writes to `out/insights.json`, and that file is committed as the real reference output. Only that path is tracked; other files under `out/` (e.g. single-row `--output` runs) stay gitignored, so working runs never pollute the diff.
 
@@ -178,12 +178,12 @@ Three generated files are checked into git rather than produced at runtime. The 
 
 | ID | Trap | Handling |
 |----|------|----------|
-| 8 | `opt_in_rate: 105.0` | `impossible_metric_anomaly: true`;&nbsp;never&nbsp;benchmarked |
-| 20 | rate&nbsp;`-0.5`&nbsp;**and**&nbsp;notes&nbsp;describe&nbsp;a&nbsp;dead&nbsp;webhook | both&nbsp;flags:&nbsp;impossible&nbsp;metric&nbsp;+&nbsp;`edge_case_anomaly`&nbsp;(leads&nbsp;vanishing) |
-| 4 | rate&nbsp;`0.0`,&nbsp;0&nbsp;impressions&nbsp;vs&nbsp;15k&nbsp;visitors | `edge_case_anomaly`:&nbsp;tracking&nbsp;script&nbsp;not&nbsp;firing |
-| 12 | rate&nbsp;`0.02`,&nbsp;no&nbsp;email&nbsp;field&nbsp;at&nbsp;all | `edge_case_anomaly`:&nbsp;rate&nbsp;measures&nbsp;the&nbsp;wrong&nbsp;thing |
-| 3 | `reported_industry: SaaS`,&nbsp;notes&nbsp;sell&nbsp;bakeware | segment stays what `reported_industry` implies (normalization never reads other fields); the contradiction is recorded as `edge_case_anomaly` |
-| all | "eCommerce"&nbsp;/&nbsp;"E-comm"&nbsp;/&nbsp;"Retail&nbsp;/&nbsp;Ecom"&nbsp;... | segment set derived from the data by one LLM call, validated in code, committed as `data/segment_map.json` |
+| 8  | `opt_in_rate: 105.0` | `impossible_metric_anomaly: true`; never benchmarked |
+| 20 | rate `-0.5` **and** notes describe a dead webhook | both flags: impossible metric + `edge_case_anomaly` (leads vanishing) |
+| 4  | rate `0.0`, 0 impressions vs 15k visitors | `edge_case_anomaly`: tracking script not firing |
+| 12 | rate `0.02`, no email field at all | `edge_case_anomaly`: rate measures the wrong thing |
+| 3  | `reported_industry: SaaS`, notes sell bakeware | segment stays what `reported_industry` implies (normalization never reads other fields); the contradiction is recorded as `edge_case_anomaly` |
+| all | "eCommerce" / "E-comm" / "Retail / Ecom" ... | segment set derived from the data by one LLM call, validated in code, committed as `data/segment_map.json` |
 
 Anomaly **classes**, not row IDs, drive the pipeline — the IDs above are just the sample's instances, asserted in tests, never hardcoded in `smart_insights/`.
 
@@ -199,11 +199,11 @@ The 30 rows are an instance of the input schema, not the scope of the design. No
 
 Three optimizations are identified and deliberately deferred (SPEC §10), each noted at the code that would change:
 
-| Tweak | Where | Why&nbsp;it&nbsp;waits |
+| Tweak | Where | Why it waits |
 |-------|-------|--------------|
-| Chunk the variant list; move the per-row stage-2 and insight calls to the **Batch API** (~50% cheaper, 24h window) | `normalize.py:7`,&nbsp;`benchmark.py:6` | 30&nbsp;rows&nbsp;run&nbsp;sequentially&nbsp;in&nbsp;seconds;&nbsp;batching&nbsp;buys&nbsp;nothing&nbsp;at&nbsp;this&nbsp;size |
-| Summarize each segment's top setups **once** and reference that shared summary, instead of joining the same performers' notes into every peer's prompt | `benchmark.py:6` | Duplication&nbsp;is&nbsp;negligible&nbsp;at&nbsp;30&nbsp;rows;&nbsp;it&nbsp;is&nbsp;the&nbsp;dominant&nbsp;prompt&nbsp;cost&nbsp;at&nbsp;scale |
-| Fan out the per-row insight calls **concurrently** instead of the current sequential waterfall (each row's `facts` are self-contained, so ordering does not matter) | `__main__.py:165` | 30&nbsp;sequential&nbsp;round-trips&nbsp;finish&nbsp;in&nbsp;seconds;&nbsp;concurrency&nbsp;only&nbsp;pays&nbsp;off&nbsp;at&nbsp;volume |
+| Chunk the variant list; move the per-row stage-2 and insight calls to the **Batch API** (~50% cheaper, 24h window) | `normalize.py:7`, `benchmark.py:6` | 30 rows run sequentially in seconds; batching buys nothing at this size |
+| Summarize each segment's top setups **once** and reference that shared summary, instead of joining the same performers' notes into every peer's prompt | `benchmark.py:6` | Duplication is negligible at 30 rows; it is the dominant prompt cost at scale |
+| Fan out the per-row insight calls **concurrently** instead of the current sequential waterfall (each row's `facts` are self-contained, so ordering does not matter) | `__main__.py:165` | 30 sequential round-trips finish in seconds; concurrency only pays off at volume |
 
 Everything else — persistence, concurrency, auth, a web UI, multi-metric support — is out of scope for a 3–4h prototype by choice, not by oversight.
 
@@ -219,11 +219,11 @@ uv run mypy                           # static types, strict over smart_insights
 
 **Tune the model *and* the reasoning effort per task, not once for the whole app.** Both LLM stages currently share one constant — `MODEL = "gpt-5"` in `smart_insights/__init__.py:18` — and neither passes a `reasoning` parameter, so both also run at the model's default effort. That was a simplicity call: one knob, one swap, the strongest model at its standard setting, so no stage is ever the weak link. It is not good practice. Both are cost levers, and the three calls are not the same kind of work:
 
-| Call | What&nbsp;the&nbsp;model&nbsp;actually&nbsp;does | Cheaper&nbsp;model? | Effort |
+| Call | What the model actually does | Cheaper model? | Effort |
 |------|------------------------------|----------------|--------|
-| 2A&nbsp;—&nbsp;derive&nbsp;the&nbsp;segment&nbsp;map&nbsp;(`preprocess.py`) | one call, real judgment: invent a segment vocabulary from raw industry strings and defend it | No. Runs once, is committed, and every downstream benchmark inherits its choice. Buy the best. | Raise it. This is the one call where thinking longer is worth paying for. |
-| 2B&nbsp;—&nbsp;per-row&nbsp;notes&nbsp;+&nbsp;anomaly&nbsp;(`preprocess.py`) | 30&nbsp;calls:&nbsp;split&nbsp;prose&nbsp;into&nbsp;fields,&nbsp;flag&nbsp;a&nbsp;field&nbsp;that&nbsp;contradicts&nbsp;another | Likely. Mostly extraction — but the anomaly judgment is the subtle part. | Split it. Extraction wants low; deciding "these two fields contradict" does not. |
-| 5&nbsp;—&nbsp;recommendation&nbsp;(`insights.py`) | one&nbsp;call&nbsp;per&nbsp;clean&nbsp;row:&nbsp;reshape&nbsp;a&nbsp;`facts`&nbsp;dict&nbsp;into&nbsp;prose,&nbsp;cite&nbsp;nothing&nbsp;else | Likely. Deterministic code already owns every number; the model is a writer, and `validate.py` catches it if it strays. | Lower it. There is nothing to reason *about*: the arithmetic is done, the facts are handed over, the job is phrasing. |
+| 2A — derive the segment map (`preprocess.py`) | one call, real judgment: invent a segment vocabulary from raw industry strings and defend it | No. Runs once, is committed, and every downstream benchmark inherits its choice. Buy the best. | Raise it. This is the one call where thinking longer is worth paying for. |
+| 2B — per-row notes + anomaly (`preprocess.py`) | 30 calls: split prose into fields, flag a field that contradicts another | Likely. Mostly extraction — but the anomaly judgment is the subtle part. | Split it. Extraction wants low; deciding "these two fields contradict" does not. |
+| 5 — recommendation (`insights.py`) | one call per clean row: reshape a `facts` dict into prose, cite nothing else | Likely. Deterministic code already owns every number; the model is a writer, and `validate.py` catches it if it strays. | Lower it. There is nothing to reason *about*: the arithmetic is done, the facts are handed over, the job is phrasing. |
 
 The API takes effort as `reasoning={"effort": ...}` on the same `responses.parse()` call, ranging from `minimal` (latency-critical, barely any reasoning tokens) through the `medium` default up to `high` (hard reasoning, paid for in tokens and latency) — exact levels vary by model, so check the [reasoning guide](https://developers.openai.com/api/docs/guides/reasoning) against whatever `MODEL` is set to. Reasoning tokens are billed as output tokens, which is also why `MAX_OUTPUT_TOKENS` sits at 8192: they are spent from that same budget.
 
