@@ -253,6 +253,7 @@ smart-insights-agent/
 │   ├── __init__.py
 │   ├── __main__.py             # argparse CLI
 │   ├── models.py
+│   ├── text.py                 # deterministic ASCII folding for LLM-authored prose
 │   ├── normalize.py            # pure Python: collect variants, validate + apply the derived map
 │   ├── preprocess.py           # stage-2 LLM calls: segment-map derivation + per-row notes/anomaly
 │   ├── audit.py
@@ -262,12 +263,14 @@ smart-insights-agent/
 │   ├── report.py
 │   └── progress.py             # dependency-free progress bar on stderr, used by every command
 └── tests/
+    ├── conftest.py             # shared fixtures: the mocked OpenAI client
     ├── test_normalize.py
     ├── test_preprocess.py
     ├── test_audit.py
     ├── test_benchmark.py
     ├── test_validate.py
     ├── test_insights.py
+    ├── test_text.py
     └── test_progress.py
 ```
 

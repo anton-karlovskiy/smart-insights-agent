@@ -307,3 +307,8 @@ Provide a description of what "facts" mean in this project in @README.md file.
 
 @README.md has been updated part by part throughout several commits. Now review the whole @README.md and polish it.
 It should look professional and organized without inventing irrelevant stuff.
+
+## 36.
+
+Review the modules and the relevant folder structures across the project. Improve/organize if you need.
+After that, you will have to check @SPEC.md and reflect the updated project layout.
