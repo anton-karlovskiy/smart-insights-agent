@@ -14,6 +14,8 @@ from typing import Literal
 
 from pydantic import BaseModel, Field, TypeAdapter, field_validator
 
+from smart_insights.text import normalize_ascii
+
 
 class RawRow(BaseModel):
     """One input row from data/optinmonster_users.json, as-is."""
@@ -65,6 +67,10 @@ class Insight(BaseModel):
             "too thin to ground the action)."
         )
     )
+
+    # The prompt asks for plain ASCII; this enforces it, so a stray curly quote
+    # never reaches the committed output or the cp1252 console.
+    _recommendation_ascii = field_validator("recommendation")(normalize_ascii)
 
 
 class EnrichedRow(RawRow):
@@ -138,10 +144,15 @@ class RowEnrichmentResponse(BaseModel):
         )
     )
 
+    # Both prose fields are asked for in plain ASCII; enforce it deterministically.
+    _notes_ascii = field_validator("cleaned_setup_notes")(
+        lambda v: [normalize_ascii(note) for note in v]
+    )
+
     # A blank explanation is no explanation: coerce to None so the anomaly
     # gate (is_anomalous) and evaluate's truthiness check can never disagree.
     _blank_anomaly_is_none = field_validator("edge_case_anomaly")(
-        lambda v: v if v and v.strip() else None
+        lambda v: normalize_ascii(v) if v and v.strip() else None
     )
 
 
