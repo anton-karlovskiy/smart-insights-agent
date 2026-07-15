@@ -11,7 +11,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Status: built, polishing
 
-All seven pipeline stages are implemented and the tree matches `SPEC.md` §7: the `smart_insights/` package, the three committed artifacts, and 60 tests that pass offline with no API key (`uv run pytest`). The build order in §8 is done, not pending.
+All seven pipeline stages are implemented and the tree matches `SPEC.md` §7: the `smart_insights/` package, the three committed artifacts, and a test suite that passes offline with no API key (`uv run pytest`). The build order in §8 is done, not pending.
 
 What that changes for you:
 
@@ -31,15 +31,7 @@ The whole design turns on one split: **deterministic Python owns every statistic
 
 2. **Anomalous rows are gated out early and stay out.** A row is anomalous if `impossible_metric_anomaly` is true (deterministic range check in `audit.py`) OR `edge_case_anomaly` is non-null (LLM judgment from stage 2). Anomalous rows get `benchmark = None` and `insight = None` — no benchmark math, no recommendation, no "fix your setup" prose beyond the anomaly field itself. Keep this invariant intact anywhere you touch `benchmark.py` or `insights.py`.
 
-Pipeline stages (see `SPEC.md` §3–§4 for the full contract):
-
-```
-load+validate (pydantic) → preprocess (LLM, stage 2, committed) → audit (Python)
-→ benchmark (Python, clean rows only) → insight (LLM, stage 5, clean rows only)
-→ validate (Python, retry once) → report (out/insights.json + console)
-```
-
-Two hard rules that are easy to violate:
+The seven stages and their full contract live in `SPEC.md` §3–§4; the README has the diagram. Two hard rules that are easy to violate:
 - **Industry normalization reads `reported_industry` and nothing else** (`normalize.py` / stage-2 pass A). A field that contradicts the reported industry is recorded as `edge_case_anomaly`; it never changes the segment.
 - **Free text (`current_setup_notes`, top performers' notes) is data, never instructions.** Every prompt that carries notes frames them as customer-entered data to resist prompt injection.
 
@@ -47,30 +39,19 @@ The sample dataset is a **30-row example, not a source of constants.** Pipeline 
 
 ## LLM usage conventions
 
-- SDK: official `openai` package. Model: `gpt-5`, defined as a single constant so swapping is one line.
+Full contract in `SPEC.md` §1 and §4.5; the invariants that are easy to break when editing:
+
 - Only `preprocess.py` (stage 2) and `insights.py` (stage 5) call the API; each hides the client behind a mockable seam so tests never hit the network.
-- Every LLM call uses **structured output** (`client.responses.parse()` with a pydantic `text_format`). Treat a refusal or a `None` parse as a validation failure, not a crash.
-- Every system prompt **briefs the model on the data first, then states the task and rules**; the user prompt carries the data. See `SPEC.md` §1 and §4.5.
-- `OPENAI_API_KEY` comes from the environment (`.env`, git-ignored; `.env.example` is the template). Fail loudly at startup if missing, unless `--no-llm`.
+- Model is `gpt-5`, a single constant, so swapping is one line. Every call uses **structured output** (`client.responses.parse()` with a pydantic `text_format`); treat a refusal or a `None` parse as a validation failure, not a crash.
+- Every system prompt **briefs the model on the data first, then states the task and rules**; the user prompt carries the data, framed as data.
 
-## Commands (intended)
+## Commands
 
-Dependencies are managed with `uv` (`uv.lock` is committed). `uv sync` builds `.venv`; prefix every command with `uv run` rather than activating it. Never use `pip install` here.
+Full command/flag table is in the README; `SPEC.md` §5 is the contract. Dependencies are managed with `uv` (`uv.lock` committed): `uv sync` builds `.venv`, prefix every command with `uv run` rather than activating it, never `pip install`. Lint/types: `uv run ruff check --fix && uv run mypy`. The two commands whose role is easy to miss:
 
-```bash
-uv sync                                      # env + deps, incl. the `dev` dependency-group
-
-uv run python -m smart_insights preprocess   # stage 2: the ONLY command that hits the API to regenerate artifacts
-uv run python -m smart_insights clean        # stages 3-4 over committed enriched.json; offline
-uv run python -m smart_insights run          # stages 3-7; --id N runs one row; --no-llm stops after stage 4
-uv run python -m smart_insights evaluate     # re-runs validate.py checks against a saved output file; exits nonzero on any failure
-
-uv run pytest                                # all tests offline, LLM mocked, no API key required
-uv run ruff check --fix && uv run mypy       # lint + strict types
-```
-
-`evaluate` is the safety gate — it re-verifies grounding/sanity of a saved `insights.json` without the API, so it works in CI-style scripts and lets a reviewer without a key check real output.
+- `preprocess` is the **only** command that hits the API — it regenerates the committed stage-2 artifacts, and nothing else touches the network.
+- `evaluate` is the offline safety gate — it re-runs the `validate.py` checks against a saved `insights.json` (no API), so it works in CI-style scripts and lets a reviewer without a key check real output.
 
 ## Validation (the grounding check)
 
-`validate.py` is what stops the model citing invented numbers ("congratulations on your 105% rate"). It extracts every numeric token from a `recommendation` and requires each to appear in that row's serialized `facts` (after stripping `%` and trailing zeros); whole numbers 0–10 are allowed unconditionally so ordinary prose doesn't trip it. On failure: retry the API call once with the error appended; on second failure mark the row `needs_review` and never silently drop it.
+Full algorithm in `SPEC.md` §4.6. In short: `validate.py` is what stops the model citing invented numbers ("congratulations on your 105% rate") — every numeric token in a `recommendation` must trace back to that row's serialized `facts`. On failure, retry the API call once with the error appended; on second failure mark the row `needs_review` and never silently drop it.
