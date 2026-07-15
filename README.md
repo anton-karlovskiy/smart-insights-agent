@@ -86,8 +86,10 @@ in the prose that is not in this bundle. One row's `facts` holds:
 - `id`, `website_url`, `canonical_industry_segment` — who this site is;
 - `opt_in_rate`, `cleaned_setup_notes` — its own rate and how its campaign is set
   up;
-- `benchmark` — the segment's mean/median/min/max opt-in rate and the
-  `low_confidence` flag: where this site stands against its peers;
+- `benchmark` — where this site stands against its peers: the segment's
+  mean/median/min/max opt-in rate, plus a `low_confidence` flag that is true
+  when the segment holds too few peers (fewer than `MIN_SEGMENT_SIZE`) to be a
+  trustworthy benchmark, telling the model to hedge rather than lean on it;
 - `top_performers` — up to three better-performing peers in the same segment,
   each with its `opt_in_rate` and `cleaned_setup_notes`: concrete setups doing
   better, for the model to draw an action from.
