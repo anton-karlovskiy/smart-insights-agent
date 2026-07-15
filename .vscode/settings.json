@@ -1,5 +1,6 @@
 {
     "cSpell.words": [
+        "bakeware",
         "conftest",
         "Dedupe",
         "dotenv",
@@ -7,6 +8,7 @@
         "Ecommerce",
         "followable",
         "htmlcov",
+        "idempotently",
         "mypy",
         "Optin",
         "optinmonster",
@@ -19,6 +21,8 @@
         "stdlib",
         "testpaths",
         "unbenchmarkable",
-        "venv"
+        "unparseable",
+        "venv",
+        "virtualenv"
     ]
 }

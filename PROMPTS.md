@@ -302,3 +302,8 @@ In this project, the term "clean" rows denotes rows that contain no anomalies. C
 ## 34.
 
 Provide a description of what "facts" mean in this project in @README.md file.
+
+## 35.
+
+@README.md has been updated part by part throughout several commits. Now review the whole @README.md and polish it.
+It should look professional and organized without inventing irrelevant stuff.
