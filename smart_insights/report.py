@@ -40,8 +40,9 @@ def write_insights(entries: list[dict[str, Any]], path: str | Path) -> None:
 
 
 def _truncate(text: str, width: int) -> str:
-    """Fit text to the column, marking any cut with an ellipsis."""
-    return text if len(text) <= width else text[: width - 1] + "…"
+    """Fit text to the column, marking any cut with an ASCII ellipsis (a
+    typographic one would crash the cp1252 Windows console)."""
+    return text if len(text) <= width else text[: width - 3] + "..."
 
 
 def print_segment_table(rows: list[EnrichedRow]) -> None:
