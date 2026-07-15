@@ -5,10 +5,13 @@
     "reported_industry": "eCommerce",
     "opt_in_rate": 2.4,
     "current_setup_notes": "Runs a sitewide overlay popup on 5s delay, no exit intent, template #4. Offers 10% off.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
-      "Sitewide overlay popup with a 5-second delay, no exit intent, template #4.",
-      "Offers 10% off."
+      "Sitewide overlay popup.",
+      "5-second delay.",
+      "No exit-intent trigger.",
+      "Template #4.",
+      "Offer: 10% off."
     ],
     "edge_case_anomaly": null
   },
@@ -22,7 +25,7 @@
     "cleaned_setup_notes": [
       "Using a sidebar widget on blog posts only.",
       "Asset: download free ebook.",
-      "No triggers; just static."
+      "No triggers; static display."
     ],
     "edge_case_anomaly": null
   },
@@ -36,7 +39,7 @@
     "cleaned_setup_notes": [
       "Exit-intent coupon code popup active on the checkout page."
     ],
-    "edge_case_anomaly": "Reported industry is \"SaaS,\" but the notes describe an ecommerce store selling baking products at bobsbakingworld.com."
+    "edge_case_anomaly": "Reported industry 'SaaS' contradicts the notes describing a retail site selling baking sheets and silicone molds at bobsbakingworld.com."
   },
   {
     "id": 4,
@@ -44,13 +47,13 @@
     "reported_industry": "Fitness & Health",
     "opt_in_rate": 0.0,
     "current_setup_notes": "Script installed via manual header injection. 0 impressions recorded this month despite 15k unique visitors. Generic newsletter signup slide-in.",
-    "canonical_industry_segment": "healthcare_wellness",
+    "canonical_industry_segment": "health_fitness",
     "cleaned_setup_notes": [
       "Script installed via manual header injection.",
-      "No impressions recorded this month despite 15k unique visitors.",
-      "Generic newsletter sign-up slide-in."
+      "0 impressions recorded this month despite 15k unique visitors.",
+      "Generic newsletter signup slide-in."
     ],
-    "edge_case_anomaly": "Zero impressions recorded this month despite 15k unique visitors suggests the OptinMonster script isn't firing or the campaign isn't displaying."
+    "edge_case_anomaly": "0 impressions recorded this month despite 15k unique visitors, so tracking is not firing and the opt-in rate 0.0 is not a trustworthy measure of performance."
   },
   {
     "id": 5,
@@ -62,7 +65,7 @@
     "cleaned_setup_notes": [
       "Scroll trigger at 50% on tech news articles.",
       "Lightbox popup offering a weekly digest.",
-      "Template heavily modified with custom CSS."
+      "Template modified heavily with custom CSS."
     ],
     "edge_case_anomaly": null
   },
@@ -74,7 +77,7 @@
     "current_setup_notes": "Standard welcome mat covering whole page instantly on load. Free 15 min consultation offer. High bounce rate reported on GA4.",
     "canonical_industry_segment": "professional_services",
     "cleaned_setup_notes": [
-      "Standard welcome mat covering the whole page, instantly on load.",
+      "Standard welcome mat covering the whole page; shows instantly on page load.",
       "Free 15-minute consultation offer."
     ],
     "edge_case_anomaly": null
@@ -85,10 +88,10 @@
     "reported_industry": "ecommerce",
     "opt_in_rate": 4.1,
     "current_setup_notes": "Exit intent on cart page only. 15% discount code. Very high conversion but low overall volume.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
       "Exit-intent on the cart page only.",
-      "15% discount code offered."
+      "15% discount code."
     ],
     "edge_case_anomaly": null
   },
@@ -115,7 +118,7 @@
     "canonical_industry_segment": "media_publishing",
     "cleaned_setup_notes": [
       "Inline form at the bottom of long-form articles.",
-      "Subscribing to the travel tips newsletter."
+      "Offer: subscription to a travel tips newsletter."
     ],
     "edge_case_anomaly": null
   },
@@ -125,11 +128,11 @@
     "reported_industry": "Retail",
     "opt_in_rate": 2.9,
     "current_setup_notes": "Sitewide popup on 10s delay. Cookie duration set to 365 days. Asking for email and phone number on step 1.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
-      "Sitewide popup with a 10-second delay.",
+      "Sitewide popup on a 10-second delay.",
       "Cookie duration set to 365 days.",
-      "Collects email and phone number on step 1."
+      "Asking for email and phone number on step 1."
     ],
     "edge_case_anomaly": null
   },
@@ -142,7 +145,7 @@
     "canonical_industry_segment": "education",
     "cleaned_setup_notes": [
       "2-step choice campaign on the course catalog page.",
-      "Clicks on \"Are you a beginner or pro?\" trigger custom targeted lead forms."
+      "Clicks on 'Are you a beginner or pro?' trigger custom-targeted lead forms."
     ],
     "edge_case_anomaly": null
   },
@@ -152,12 +155,12 @@
     "reported_industry": "E-comm",
     "opt_in_rate": 0.02,
     "current_setup_notes": "Floating bar at the top of the page with a countdown timer for free shipping. No email input field, just a button linking to shop page.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
       "Floating bar at the top of the page with a countdown timer for free shipping.",
       "No email input field; a button links to the shop page."
     ],
-    "edge_case_anomaly": "The campaign has no email input field—only a button linking to the shop page—so the reported opt-in rate likely reflects clicks, not email signups."
+    "edge_case_anomaly": "The notes say 'No email input field, just a button linking to shop page,' so the 0.02% opt_in_rate does not measure opt-in performance."
   },
   {
     "id": 13,
@@ -167,8 +170,8 @@
     "current_setup_notes": "Slide-in box on bottom right triggering after 30 seconds on site. Quote request form.",
     "canonical_industry_segment": "local_services",
     "cleaned_setup_notes": [
-      "Slide-in box appears at the bottom right after 30 seconds on site.",
-      "Includes a quote request form."
+      "Slide-in box on the bottom right, triggered after 30 seconds on site.",
+      "Quote request form."
     ],
     "edge_case_anomaly": null
   },
@@ -178,11 +181,11 @@
     "reported_industry": "Finance",
     "opt_in_rate": 3.1,
     "current_setup_notes": "Timed popup (3s) on homepage only. Offering 'Top 5 Crypto Picks' PDF. No mobile optimization enabled.",
-    "canonical_industry_segment": "finance",
+    "canonical_industry_segment": "professional_services",
     "cleaned_setup_notes": [
-      "Timed popup (3s) on the homepage only.",
-      "Offering \"Top 5 Crypto Picks\" PDF.",
-      "Mobile optimization is not enabled."
+      "Timed popup with a 3-second delay on homepage only.",
+      "Offering a 'Top 5 Crypto Picks' PDF.",
+      "No mobile optimization enabled."
     ],
     "edge_case_anomaly": null
   },
@@ -192,12 +195,12 @@
     "reported_industry": "E-commerce",
     "opt_in_rate": 2.2,
     "current_setup_notes": "Overlay popup on 5s delay, no exit intent, template #4. Written entirely in French, targeting EU users.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
       "Overlay popup with 5-second delay.",
       "No exit-intent trigger.",
-      "Using Template #4.",
-      "Campaign written entirely in French.",
+      "Template #4.",
+      "Written entirely in French.",
       "Targeting EU users."
     ],
     "edge_case_anomaly": null
@@ -210,8 +213,8 @@
     "current_setup_notes": "Welcome mat on landing page. Text says: 'Join our weekly HR newsletter.' Form asks for Company Name, Employee Count, Job Title, and Email.",
     "canonical_industry_segment": "software_saas",
     "cleaned_setup_notes": [
-      "Welcome mat on the landing page.",
-      "Text says: \"Join our weekly HR newsletter.\"",
+      "Welcome mat on landing page.",
+      "Text says 'Join our weekly HR newsletter.'",
       "Form fields: Company Name, Employee Count, Job Title, and Email."
     ],
     "edge_case_anomaly": null
@@ -225,7 +228,7 @@
     "canonical_industry_segment": "media_publishing",
     "cleaned_setup_notes": [
       "Exit-intent popup on all organic search landing pages.",
-      "Free seed-planting calendar download."
+      "Offer: free seed-planting calendar download."
     ],
     "edge_case_anomaly": null
   },
@@ -235,11 +238,11 @@
     "reported_industry": "Medical / Local Business",
     "opt_in_rate": 1.2,
     "current_setup_notes": "Floating bar at bottom of mobile view. 'Call Now for Appointment' button. Also contains an email field.",
-    "canonical_industry_segment": "healthcare_wellness",
+    "canonical_industry_segment": "local_services",
     "cleaned_setup_notes": [
       "Floating bar at the bottom in mobile view.",
-      "Includes a \"Call Now for Appointment\" button.",
-      "Contains an email field."
+      "Includes a 'Call Now for Appointment' button.",
+      "Also contains an email field."
     ],
     "edge_case_anomaly": null
   },
@@ -249,10 +252,10 @@
     "reported_industry": "E-commerce",
     "opt_in_rate": 3.5,
     "current_setup_notes": "MonsterLink trigger setup. Users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
-      "MonsterLink trigger is set up.",
-      "Users must click the \"Unlock Secret Stash\" text link to open the lightbox popup."
+      "MonsterLink trigger configured.",
+      "Users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
     ],
     "edge_case_anomaly": null
   },
@@ -265,9 +268,9 @@
     "canonical_industry_segment": "professional_services",
     "cleaned_setup_notes": [
       "Sidebar contact widget on desktop.",
-      "Form submissions post to a dead webhook URL."
+      "Form submissions drop leads into a dead webhook URL."
     ],
-    "edge_case_anomaly": "Form submissions post to a dead webhook URL, so leads are being lost."
+    "edge_case_anomaly": "Notes say 'dead Webhook URL', indicating submissions are being lost, so the opt_in_rate is not trustworthy."
   },
   {
     "id": 21,
@@ -275,10 +278,10 @@
     "reported_industry": "Retail / Ecom",
     "opt_in_rate": 1.8,
     "current_setup_notes": "Sitewide popup on 2s delay. Standard 'Join our mailing list for news.' No coupon or lead magnet offered.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
       "Sitewide popup with a 2-second delay.",
-      "Standard \"Join our mailing list for news\" message.",
+      "Standard 'Join our mailing list for news'.",
       "No coupon or lead magnet offered."
     ],
     "edge_case_anomaly": null
@@ -291,9 +294,10 @@
     "current_setup_notes": "Exit intent popup showing a funny meme targeting returning visitors only. Highly specific audience segment.",
     "canonical_industry_segment": "media_publishing",
     "cleaned_setup_notes": [
-      "Exit-intent popup featuring a funny meme.",
+      "Exit-intent popup.",
       "Targeting returning visitors only.",
-      "Audience segmentation is highly specific."
+      "Content: a funny meme.",
+      "Audience: highly specific segment."
     ],
     "edge_case_anomaly": null
   },
@@ -305,8 +309,8 @@
     "current_setup_notes": "Slide-in box after 60% page scroll on the schedule page. Offers a free first class pass.",
     "canonical_industry_segment": "local_services",
     "cleaned_setup_notes": [
-      "Slide-in box triggers after 60% page scroll on the Schedule page.",
-      "Offers a free first-class pass."
+      "Slide-in box triggered after 60% page scroll on the Schedule page.",
+      "Offers a free first class pass."
     ],
     "edge_case_anomaly": null
   },
@@ -319,7 +323,7 @@
     "canonical_industry_segment": "software_saas",
     "cleaned_setup_notes": [
       "Inline whitepaper download form on technical documentation pages.",
-      "Asks for a business email.",
+      "Collects business email.",
       "CAPTCHA enabled."
     ],
     "edge_case_anomaly": null
@@ -330,10 +334,11 @@
     "reported_industry": "E-commerce",
     "opt_in_rate": 2.7,
     "current_setup_notes": "Spin-to-win gamified wheel popup triggered after 15 seconds on site. Offering various coupon prizes (5% to 25% off).",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
-      "Spin-to-win gamified wheel popup triggered after 15 seconds on site.",
-      "Offering coupon prizes ranging from 5% to 25% off."
+      "Spin-to-win gamified wheel popup.",
+      "Triggered after 15 seconds on site.",
+      "Offers coupon prizes of 5% to 25% off."
     ],
     "edge_case_anomaly": null
   },
@@ -346,7 +351,7 @@
     "canonical_industry_segment": "local_services",
     "cleaned_setup_notes": [
       "Full-screen welcome mat on the homepage.",
-      "Form fields: Name, Phone, Email, Desired Budget, Timeline to Buy."
+      "Form fields: Name, Phone, Email, Desired Budget, Timeline to buy."
     ],
     "edge_case_anomaly": null
   },
@@ -356,12 +361,12 @@
     "reported_industry": "Ecommerce",
     "opt_in_rate": 3.0,
     "current_setup_notes": "Overlay popup on 5s delay, no exit intent, template #4. Duplicate setup of ID #1 but different domain.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
-      "Overlay popup with 5-second delay.",
-      "No exit-intent trigger.",
-      "Template #4.",
-      "Duplicate of campaign ID #1 on a different domain."
+      "Overlay popup with a 5-second delay.",
+      "Exit-intent disabled.",
+      "Using template #4.",
+      "Duplicate setup of ID #1 on a different domain."
     ],
     "edge_case_anomaly": null
   },
@@ -373,9 +378,9 @@
     "current_setup_notes": "Timed slide-in (7s) offering a free 14-day trial. Direct input field for email only.",
     "canonical_industry_segment": "software_saas",
     "cleaned_setup_notes": [
-      "Slide-in triggered after 7 seconds.",
-      "Offers a free 14-day trial.",
-      "Form has an email-only input field."
+      "Timed slide-in displays after 7 seconds.",
+      "Offer: free 14-day trial.",
+      "Form uses an email-only input field."
     ],
     "edge_case_anomaly": null
   },
@@ -385,10 +390,10 @@
     "reported_industry": "E-commerce",
     "opt_in_rate": 1.6,
     "current_setup_notes": "Exit intent lightbox on product pages. Offering a free leather care guide PDF instead of a discount code.",
-    "canonical_industry_segment": "retail_ecommerce",
+    "canonical_industry_segment": "ecommerce_retail",
     "cleaned_setup_notes": [
       "Exit-intent lightbox on product pages.",
-      "Offering a free leather care guide PDF instead of a discount code."
+      "Offers a free leather care guide PDF instead of a discount code."
     ],
     "edge_case_anomaly": null
   },
@@ -401,7 +406,7 @@
     "canonical_industry_segment": "professional_services",
     "cleaned_setup_notes": [
       "Static inline box embedded in the page footer.",
-      "High-friction form with six required input fields."
+      "High-friction form with 6 required input fields."
     ],
     "edge_case_anomaly": null
   }

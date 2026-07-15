@@ -21,15 +21,26 @@ def _lookup_key(wording: str) -> str:
     return " ".join(wording.split()).casefold()
 
 
-def collect_variants(rows: list[RawRow]) -> list[str]:
-    """Unique reported_industry wordings, first-seen spelling kept,
-    deduped case- and whitespace-insensitively. Deterministic order."""
+def collect_variant_counts(rows: list[RawRow]) -> dict[str, int]:
+    """Unique reported_industry wordings -> how many websites reported each.
+    First-seen spelling kept, deduped case- and whitespace-insensitively,
+    deterministic order.
+
+    The counts exist for the pass-A prompt: a segment is a benchmarking peer
+    group, so the model is asked to avoid segments too thin to benchmark
+    (SPEC §4.2) — a judgment it cannot make from a bare list of wordings.
+    """
     first_spelling_by_key: dict[str, str] = {}
+    websites_by_key: dict[str, int] = {}
     for row in rows:
         key = _lookup_key(row.reported_industry)
         if key not in first_spelling_by_key:
             first_spelling_by_key[key] = row.reported_industry.strip()
-    return sorted(first_spelling_by_key.values(), key=_lookup_key)
+        websites_by_key[key] = websites_by_key.get(key, 0) + 1
+    return {
+        first_spelling_by_key[key]: websites_by_key[key]
+        for key in sorted(first_spelling_by_key, key=_lookup_key)
+    }
 
 
 def validate_segment_map(variants: list[str], response: SegmentMapResponse) -> dict[str, str]:

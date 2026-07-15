@@ -36,10 +36,19 @@ def good_map() -> SegmentMapResponse:
 class TestDeriveSegmentMap:
     def test_happy_path(self, mock_client):
         mock_client.responses.parse.return_value = parse_response(good_map())
-        segments, mapping = derive_segment_map(["eCommerce"], mock_client)
+        segments, mapping = derive_segment_map({"eCommerce": 4}, mock_client)
         assert segments == ["ecommerce"]
         assert mapping == {"eCommerce": "ecommerce"}
         assert mock_client.responses.parse.call_count == 1
+
+    def test_website_counts_reach_the_prompt(self, mock_client):
+        """The prompt asks the model to avoid segments too thin to benchmark;
+        it can only obey if each wording carries its website count."""
+        mock_client.responses.parse.return_value = parse_response(good_map())
+        derive_segment_map({"eCommerce": 4}, mock_client)
+        sent = mock_client.responses.parse.call_args.kwargs["input"]
+        assert '"variant": "eCommerce"' in sent
+        assert '"websites": 4' in sent
 
     def test_retries_once_with_validation_error_then_succeeds(self, mock_client):
         incomplete = SegmentMapResponse(segments=["ecommerce"], mapping=[])
@@ -47,7 +56,7 @@ class TestDeriveSegmentMap:
             parse_response(incomplete),
             parse_response(good_map()),
         ]
-        _, mapping = derive_segment_map(["eCommerce"], mock_client)
+        _, mapping = derive_segment_map({"eCommerce": 4}, mock_client)
         assert mapping == {"eCommerce": "ecommerce"}
         assert mock_client.responses.parse.call_count == 2
         retry_input = mock_client.responses.parse.call_args_list[1].kwargs["input"]
@@ -61,14 +70,14 @@ class TestDeriveSegmentMap:
             parse_response(incomplete),
         ]
         with pytest.raises(PreprocessError, match="failed after retry"):
-            derive_segment_map(["eCommerce"], mock_client)
+            derive_segment_map({"eCommerce": 4}, mock_client)
 
     def test_none_parse_is_retried_not_crashed(self, mock_client):
         mock_client.responses.parse.side_effect = [
             parse_response(None),
             parse_response(good_map()),
         ]
-        _, mapping = derive_segment_map(["eCommerce"], mock_client)
+        _, mapping = derive_segment_map({"eCommerce": 4}, mock_client)
         assert mapping == {"eCommerce": "ecommerce"}
 
     def test_truncated_response_is_retried_not_crashed(self, mock_client):
@@ -81,7 +90,7 @@ class TestDeriveSegmentMap:
             return parse_response(good_map())
 
         mock_client.responses.parse.side_effect = truncated_then_ok
-        _, mapping = derive_segment_map(["eCommerce"], mock_client)
+        _, mapping = derive_segment_map({"eCommerce": 4}, mock_client)
         assert mapping == {"eCommerce": "ecommerce"}
 
 

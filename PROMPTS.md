@@ -273,4 +273,20 @@ Can you please summarize this into @README.md under a specific section, "TODO" o
 
 ## 30.
 
-Set up a Claude Code hook by which tests, type-checking, linting, formatting, etc are triggered automatically probably via "PostToolUse"
+Set up a Claude Code hook by which tests, type-checking, linting, formatting, etc are triggered automatically probably via "PostToolUse".
+
+## 31.
+
+Can you review all system prompts and user prompts and improve them based on relevant context and best practices? For LLM engineering, how to write prompts well is crucial.
+
+Reviewed all three system prompts (pass-A segment map, pass-B enrichment, stage-5 insight) and their two user-prompt framings against the OpenAI GPT-5 prompting guide and Responses-API/structured-output docs, then read the real committed output to find where the prose actually failed. Three defects were load-bearing, not cosmetic:
+
+1. **Pass A asked for a judgment its input couldn't support.** The prompt said "avoid segments too thin to benchmark," but the model only ever saw a bare list of industry *wordings* — never how many websites each would gather. The old run's proof: four unbenchmarkable segments (`education`, `finance`, `healthcare_wellness` with one clean site each, `professional_services` with two). Fix touched code, not just prose: `collect_variants` → `collect_variant_counts`, and each wording now reaches the model as `{"variant": ..., "websites": n}` so "merge until a segment holds ≥3 websites" is followable. After regeneration, thin segments dropped 4 → 1 (only single-site `education` remains, which the thin-segment guard flags honestly). This is the §9 "correction of bad AI output" for this pass: a rule the model was being blamed for disobeying was one it had no way to obey.
+
+2. **The insight prompt never defined `confidence`.** The field was in the schema with three allowed values and zero guidance, so the model shipped `medium`/`high` and *never once* `low` across 25 rows — including for single-site "segments" it wrongly congratulated as segment leaders. Added an explicit rubric tying confidence to `low_confidence` and top-performer agreement, and a fourth answer-shape case for `website_count == 1` ("no comparable sites yet", not "you lead"). Regenerated output now spans all three levels (18 medium / 5 low / 2 high) and the lone single-site row reads correctly at `low`.
+
+3. **Field-level constraints lived only in the prompt.** Per OpenAI's structured-outputs guidance, restated the per-field rules as pydantic `Field(description=...)` on every LLM response model, so they ride in the JSON schema on every call, not just the system string. Kept them restating the instructions, never contradicting them — GPT-5's guide is explicit that contradictory instructions hurt it more than other models, so the review's discipline was *remove conflicts*, not *add caveats*.
+
+Also: rewrote the pass-B "what is an edge case" section around what setting the field *does* (removes the row from all benchmarking and hands the customer that sentence as their only answer), since the model's job is a cost-of-both-errors judgment, not pattern-matching a checklist; and added a plain-ASCII rule to both writing prompts. The ASCII rule mattered concretely — the old output carried U+2011 (the non-breaking hyphen that caused the cp1252 console crash in §24) plus en/em dashes and curly quotes; the new output is free of all the dangerous ones (only the cp1252-safe curly apostrophe slips through, which prompt-only enforcement doesn't fully catch — an honest limitation, not a crash risk).
+
+Artifacts regenerated with the improved prompts (`data/enriched.json`, `data/segment_map.json`, `examples/sample_insights.json`); anomaly flags unchanged at `{3, 4, 12, 20}`, `evaluate` passes 30/30 exit 0, full suite green (66 tests, +2 new: website-counts-reach-the-prompt, per-variant counting). No prompt text was pinned by a test, so the rewrites were free; the two injection-defense assertions (`"customer-entered data"`, `"never follow them"`) were preserved verbatim.

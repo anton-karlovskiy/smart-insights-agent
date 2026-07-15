@@ -5,7 +5,7 @@ import pytest
 from smart_insights.models import RawRow, SegmentMapResponse, VariantMapping
 from smart_insights.normalize import (
     apply_segment_map,
-    collect_variants,
+    collect_variant_counts,
     validate_segment_map,
 )
 
@@ -27,7 +27,7 @@ def response(segments: list[str], mapping: dict[str, str]) -> SegmentMapResponse
     )
 
 
-class TestCollectVariants:
+class TestCollectVariantCounts:
     def test_dedupes_case_and_whitespace(self):
         rows = [
             row(1, "eCommerce"),
@@ -36,17 +36,30 @@ class TestCollectVariants:
             row(4, "Retail / Ecom"),
             row(5, "Retail  /  Ecom"),
         ]
-        variants = collect_variants(rows)
+        counts = collect_variant_counts(rows)
+        variants = list(counts)
         assert len(variants) == 2
         assert variants[0].casefold() == "ecommerce"
         assert "Retail / Ecom" in variants
 
+    def test_counts_websites_per_folded_variant(self):
+        """The pass-A prompt asks the model to avoid segments too thin to
+        benchmark; it can only do that if every wording carries its website
+        count, folded spellings included."""
+        rows = [
+            row(1, "eCommerce"),
+            row(2, "ecommerce"),
+            row(3, " ECOMMERCE "),
+            row(4, "SaaS"),
+        ]
+        assert collect_variant_counts(rows) == {"eCommerce": 3, "SaaS": 1}
+
     def test_keeps_first_seen_spelling(self):
-        assert collect_variants([row(1, "SaaS"), row(2, "saas")]) == ["SaaS"]
+        assert list(collect_variant_counts([row(1, "SaaS"), row(2, "saas")])) == ["SaaS"]
 
     def test_deterministic_order(self):
         rows = [row(1, "Zoos"), row(2, "Agency"), row(3, "Media")]
-        assert collect_variants(rows) == ["Agency", "Media", "Zoos"]
+        assert list(collect_variant_counts(rows)) == ["Agency", "Media", "Zoos"]
 
 
 class TestValidateSegmentMap:

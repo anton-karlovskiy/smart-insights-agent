@@ -5,6 +5,7 @@
         "dotenv",
         "Ecom",
         "Ecommerce",
+        "followable",
         "htmlcov",
         "mypy",
         "Optin",
@@ -17,6 +18,7 @@
         "setuptools",
         "stdlib",
         "testpaths",
+        "unbenchmarkable",
         "venv"
     ]
 }
