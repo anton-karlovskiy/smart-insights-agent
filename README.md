@@ -73,7 +73,7 @@ cp .env.example .env       # add OPENAI_API_KEY — only needed for step 4 below
 From a fresh clone to `out/insights.json`. Steps 1–3 need no API key, because they read the committed stage-2 artifacts (see below); only step 4 calls the model.
 
 ```bash
-# 1. Confirm the checkout is sound. All 60 tests run offline, LLM mocked.
+# 1. Confirm the checkout is sound. All 73 tests run offline, LLM mocked.
 uv run pytest
 
 # 2. See the deterministic half of the pipeline: stages 3-4.
@@ -169,14 +169,6 @@ Three generated files are checked into git rather than produced at runtime. The 
 
 `out/` is gitignored, so working runs never pollute the diff — `run` writes there, and `examples/sample_insights.json` is a promoted copy of one such run.
 
-## Checks
-
-```bash
-uv run ruff format                    # format
-uv run ruff check --fix               # lint (E, F, I, UP, B, SIM, RUF)
-uv run mypy                           # static types, strict over smart_insights/ and tests/
-```
-
 ## Trap handling (sample dataset)
 
 | ID | Trap | Handling |
@@ -208,6 +200,14 @@ Two optimizations are identified and deliberately deferred (SPEC §10), each not
 | Summarize each segment's top setups **once** and reference that shared summary, instead of joining the same performers' notes into every peer's prompt | `benchmark.py:6` | Duplication is negligible at 30 rows; it is the dominant prompt cost at scale |
 
 Everything else — persistence, concurrency, auth, a web UI, multi-metric support — is out of scope for a 3–4h prototype by choice, not by oversight.
+
+## Checks
+
+```bash
+uv run ruff format                    # format
+uv run ruff check --fix               # lint (E, F, I, UP, B, SIM, RUF)
+uv run mypy                           # static types, strict over smart_insights/ and tests/
+```
 
 ## TODO
 
