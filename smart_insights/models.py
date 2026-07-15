@@ -60,9 +60,9 @@ class Insight(BaseModel):
         description=(
             "How strongly the facts support the recommendation. 'high' only when "
             "the segment is a real peer group (benchmark.low_confidence is false) "
-            "and the top performers agree with one another; 'low' when the "
-            "benchmark cannot carry weight (low_confidence true, a segment of one, "
-            "or no top performers and little in the notes)."
+            "and the top performers agree with one another; 'low' when the facts "
+            "cannot carry weight (low_confidence true, a segment of one, or notes "
+            "too thin to ground the action)."
         )
     )
 

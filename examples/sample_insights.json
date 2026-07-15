@@ -56,7 +56,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 2.4%; your segment’s median is 2.7%. You run a sitewide overlay with a 5-second delay and no exit-intent. A top performer uses exit-intent on the cart page only. Create an A/B split test variant that shows an exit-intent popup only on the cart page (use exit-intent + page-level targeting) against your current setup.",
+      "recommendation": "Your 2.4% opt-in rate is below your segment's 2.7% median. Replace your sitewide 5-second-delay popup (no exit-intent) with an exit-intent trigger targeted to the cart page only using page-level targeting; a top performer does this and gets 4.1%.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -98,7 +98,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate 1.1% is close to your segment’s median 1.0%. Replace the static blog sidebar with a timed slide-in that appears after 7 seconds on those posts and uses an email-only field. The top performer does this, and your current setup has no trigger.",
+      "recommendation": "Your opt-in rate is 1.1% vs your segment's median of 1.0%. Replace the static sidebar widget on blog posts with a slide-in that appears after 7 seconds; the top performer at 2.1% uses a timed slide-in after 7 seconds. Use OptinMonster's slide-in with a time-delay trigger.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -175,7 +175,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 5.2%, above your segment’s median of 5.0%. To move it higher, replace your 50% scroll trigger on the lightbox with OptinMonster’s exit-intent trigger; the top performer at 8.7% uses an exit-intent popup.",
+      "recommendation": "You are at 5.2%, just above your segment’s 5.0% median. A/B test switching your weekly digest lightbox on tech news articles from a 50% scroll trigger to an exit-intent trigger; the top performer at 8.7% uses an exit-intent popup.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -216,7 +216,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 0.8%, matching your segment’s median of 0.8%. The top performer uses a timed popup with a 3-second delay, while yours is a whole-page welcome mat that shows instantly. A/B test replacing the instant welcome mat with a timed popup triggered after 3 seconds using OptinMonster’s timed trigger.",
+      "recommendation": "Your opt-in rate of 0.8% matches your segment median of 0.8%. You use an instant full-page welcome mat for a free 15-minute consultation. The top performer at 3.1% runs a timed popup with a 3-second delay on the homepage only. A/B split test that OptinMonster variant (timed popup with 3-second delay + page-level targeting) against your current welcome mat.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -245,8 +245,8 @@
     },
     "top_performers": [],
     "insight": {
-      "recommendation": "You lead your segment. Keep your cart-page exit-intent with the 15% code, and run an A/B split test on that campaign: current single-step form vs a 2-step optin on the same exit-intent trigger.",
-      "confidence": "low"
+      "recommendation": "Your site leads your segment; no peer beats it. Run an A/B split test on the cart page: current exit-intent with the 15% discount code vs. a 2-step optin opened by a MonsterLink button labeled 'Get 15% off'.",
+      "confidence": "medium"
     },
     "status": "ok",
     "status_reason": null
@@ -324,7 +324,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your 1.9% is below your segment's 5.0% median. Top performers rely on popups (two of the three use exit-intent), while you use an inline form at the bottom of long-form articles. Add an exit-intent lightbox popup that offers your travel tips newsletter on those articles.",
+      "recommendation": "At 1.9%, you are below your segment’s 5.0% median. Replace the bottom-of-article inline form with an exit-intent lightbox popup for your travel tips newsletter. All three top performers use popups, and two of the three use exit-intent.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -385,7 +385,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 2.9%, above your segment’s median of 2.7%. Two of the three top performers use intent-based triggers (exit-intent on the cart page, or a MonsterLink click), while you run a sitewide 10-second delay. Switch to an Exit-Intent trigger on the cart page only.",
+      "recommendation": "Your opt-in rate is 2.9%, above your segment’s median of 2.7%. A/B test replacing your sitewide 10-second popup with an exit-intent popup shown only on the cart page, using OptinMonster’s exit-intent trigger. The top performer at 4.1% runs exit-intent on the cart page only, while you use a sitewide 10-second delay.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -414,7 +414,7 @@
     },
     "top_performers": [],
     "insight": {
-      "recommendation": "There are no comparable sites to compare against yet. Set up an A/B split test on the course catalog page: keep your 2-step choice as Control, and make Variant B a single-step exit-intent popup to capture visitors who do not click 'Are you a beginner or pro?'.",
+      "recommendation": "No comparable sites in your segment yet. Run an A/B split test on your course catalog 2-step choice: keep the same triggers, but test benefit-focused headline and button text against the current 'Are you a beginner or pro?' prompt to see which drives more clicks into the custom-targeted lead forms.",
       "confidence": "low"
     },
     "status": "ok",
@@ -471,7 +471,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 1.5%; the segment median is 1.45%. The top performer at 4.3% uses a slide-in triggered after 60% page scroll on the Schedule page; yours fires after 30 seconds. A/B split test replacing your 30-second time delay with a 60% page-scroll trigger for the slide-in (use OptinMonster’s page-scroll trigger).",
+      "recommendation": "Your 1.5% is above your segment's median 1.45%. The top performer at 4.3% fires a slide-in at 60% page scroll on the Schedule page, while yours waits 30 seconds. Action: A/B split test switching your slide-in to a 60% scroll trigger (replacing the 30-second delay) for your quote request.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -501,8 +501,8 @@
     },
     "top_performers": [],
     "insight": {
-      "recommendation": "You are leading your segment at 3.1%. Run an A/B split test on your homepage popup: compare your current 3-second timed display to an exit-intent trigger, keeping the same design and the 'Top 5 Crypto Picks' PDF offer.",
-      "confidence": "low"
+      "recommendation": "You lead your segment at 3.1%. Protect that setup and run one A/B split test: keep your homepage timed popup with the 3-second delay and 'Top 5 Crypto Picks' PDF as the control, and test a mobile-optimized version of the same offer using OptinMonster’s mobile templates and device targeting.",
+      "confidence": "medium"
     },
     "status": "ok",
     "status_reason": null
@@ -564,7 +564,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your 2.2% opt-in rate is below your segment’s median of 2.7%. A top performer runs an exit-intent popup on the cart page with a 15% discount, while your popup waits 5 seconds and has no exit-intent. Turn on an exit-intent trigger for a cart-page popup.",
+      "recommendation": "Your 2.2% opt-in rate is below your segment's 2.7% median. Top performers use stronger triggers: one runs exit-intent on the cart page with a 15% discount (4.1%), another uses a MonsterLink 2-step optin (3.5%). Your popup waits 5 seconds and has no exit-intent. Run an A/B split test adding an exit-intent trigger on the cart page vs your current timed overlay.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -626,7 +626,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 0.5%, below your segment's median of 1.0%. Top performers offer a specific asset or trial instead of a generic newsletter, and one uses a timed slide-in after 7 seconds with an email-only field. Replace your landing-page welcome mat and newsletter ask with a 7-second slide-in that offers a free 14-day trial and uses an email-only field.",
+      "recommendation": "Your 0.5% opt-in rate is below your segment's 1.0% median. Your welcome mat asks for Company Name, Employee Count, Job Title, and Email, while the top performer uses an email-only form. Run an A/B split test in OptinMonster where the variant keeps the welcome mat but reduces the form to a single email field.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -678,7 +678,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate 4.8% is below your segment’s median 5.0%. Top performers narrow who sees their popups (one targets returning visitors only; another runs on specific articles). You show an exit-intent on all organic search landing pages. Action: use page-level targeting to display that popup only on content most aligned with your free seed-planting calendar.",
+      "recommendation": "Your 4.8% is below your segment’s 5.0% median. Both top performers narrow who sees their popup (one targets returning visitors, the other limits to specific articles). You run exit-intent on all organic search landings. Next: use page-level targeting to show your exit-intent only on articles closely related to the seed-planting calendar offer.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -737,7 +737,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your 1.2% is below your segment's 1.45% median. Two of the three top performers use slide-ins with timed or scroll triggers. Replace your mobile floating bar with an OptinMonster slide-in on your appointment page, triggered after 30 seconds (time delay + page-level targeting).",
+      "recommendation": "Your 1.2% opt-in rate is below your segment’s 1.45% median. Two of the three top performers use slide-in boxes (the leader uses a scroll-triggered slide-in). You currently use a mobile floating bar with a 'Call Now for Appointment' button and an email field. Run an A/B split test replacing the floating bar with a slide-in optin.",
       "confidence": "high"
     },
     "status": "ok",
@@ -777,7 +777,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your 3.5% is above your segment’s 2.7% median. The top performer at 4.1% uses exit-intent on the cart page. Add an exit-intent trigger on the cart page for your lightbox, instead of relying only on the MonsterLink users must click.",
+      "recommendation": "Your opt-in rate is 3.5%, above your segment’s median of 2.7%. Run an A/B split test: keep your current MonsterLink-triggered optin vs. an exit-intent lightbox targeted to the cart page that offers a 15% discount code, matching what the top performer uses.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -855,7 +855,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 1.8%, below your segment's median 2.7%. Two of the top performers use intent-based triggers (exit-intent or a MonsterLink) instead of an instant sitewide popup. You are running a sitewide 2-second delay with generic copy. Switch that popup to an exit-intent trigger.",
+      "recommendation": "Your opt-in rate of 1.8% is below your segment's median of 2.7%. A/B split test your current sitewide 2-second popup against a version that offers a 15% discount code, since a top performer uses a 15% code and your popup offers no lead magnet.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -886,7 +886,7 @@
     },
     "top_performers": [],
     "insight": {
-      "recommendation": "Your site leads your segment at 8.7%. Keep your exit-intent popup for returning visitors, and run an A/B split test with one variant that shows the same popup to first-time visitors too. This tests whether your 'returning-only' targeting is capping signups while protecting what is working.",
+      "recommendation": "You lead your segment; no peer beats your 8.7% opt-in rate. Keep your exit-intent popup and returning-visitor targeting, and A/B split test a Yes/No (2-step) version of the same meme-based offer to see if the micro-commitment boosts signups.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -915,8 +915,8 @@
     },
     "top_performers": [],
     "insight": {
-      "recommendation": "Your site leads your segment; no peer beats your 4.3% opt-in rate. Keep your slide-in on the Schedule page offering a free first class pass, and run an A/B split test that adds an exit-intent trigger against your current 60% scroll trigger.",
-      "confidence": "low"
+      "recommendation": "You lead your segment at 4.3%. Keep your current slide-in on the Schedule page and run one A/B split test: in the variant, switch the trigger from 60% scroll to exit-intent while keeping the same free first class pass.",
+      "confidence": "medium"
     },
     "status": "ok",
     "status_reason": null
@@ -967,7 +967,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your 0.9% opt-in rate is below your segment’s median of 1.0%. Both top performers avoid inline forms (one uses a timed slide-in after 7 seconds, the other a sidebar widget). Run an A/B split test: keep your inline technical-documentation form vs a slide-in that triggers after 7 seconds.",
+      "recommendation": "Your opt-in rate 0.9% is below your segment’s median 1.0%. Run an A/B split test: replace the inline whitepaper form on technical documentation pages with an OptinMonster slide-in triggered after 7 seconds, mirroring the top performer at 2.1% that uses a timed slide-in.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -1028,7 +1028,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your 2.7% matches your segment's median of 2.7%. A/B split test an exit-intent popup targeted to the cart page only against your current 15 seconds spin-to-win popup; the top performer at 4.1% uses exit-intent on the cart page, and two of the three top performers rely on intent-based triggers (exit-intent or MonsterLink).",
+      "recommendation": "Your opt-in rate is 2.7%, matching your segment’s median of 2.7%. Top performers use intent or faster triggers: exit-intent on the cart page with a 15% code, a MonsterLink click, or a 5-second delay. A/B split test replacing your 15-second spin-to-win with an exit-intent lightbox targeted to the cart page only (page-level targeting).",
       "confidence": "medium"
     },
     "status": "ok",
@@ -1077,7 +1077,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 1.4%, below your segment’s 1.45% median. Both top performers use slide-in boxes, while you run a full-screen welcome mat on the homepage. Replace the homepage welcome mat with an OptinMonster slide-in campaign.",
+      "recommendation": "Your opt-in rate is 1.4%, below your segment's median of 1.45%. Two top performers use slide-in boxes. A/B split test replacing your full-screen homepage welcome mat with a slide-in box triggered after 30 seconds.",
       "confidence": "high"
     },
     "status": "ok",
@@ -1128,7 +1128,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 3.0% vs your segment’s 2.7% median. Top performers here use intent-triggered popups (exit-intent on the cart page or MonsterLink), while yours waits 5 seconds and exit-intent is disabled. Switch your overlay to an exit-intent trigger on the cart page.",
+      "recommendation": "Your opt-in rate is 3.0%, above your segment’s 2.7% median. Both top performers use intent-based triggers (exit-intent on the cart page; a MonsterLink click) while you rely on a 5-second delay with exit-intent disabled. Run an A/B split test that enables exit-intent only on the cart page (page-level targeting) versus your current 5-second delay overlay.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -1158,8 +1158,8 @@
     },
     "top_performers": [],
     "insight": {
-      "recommendation": "You lead your segment (no peer beats your 2.1%). Protect what is working and set up an A/B split test: keep your 7-second timed slide-in as the control and test a variant that triggers on exit-intent to capture abandoning visitors.",
-      "confidence": "low"
+      "recommendation": "You lead your segment at 2.1%. Protect that by keeping your current slide-in and run an A/B split test: test an exit-intent trigger against your 7-second timer for the same email-only, free 14-day trial offer.",
+      "confidence": "medium"
     },
     "status": "ok",
     "status_reason": null
@@ -1218,7 +1218,7 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate of 1.6% is below your segment's median of 2.7%. Top performers here avoid exit-intent: two of the three use other triggers (a 5-second delay overlay and a MonsterLink click). Replace your product-page exit-intent lightbox with an overlay popup using a 5-second delay (time delay trigger).",
+      "recommendation": "Your opt-in rate of 1.6% is below your segment's median of 2.7%. Run an A/B split test on your current exit-intent product-page lightbox: swap the free leather care guide for a 15% discount code, following the top performer that offers a 15% code.",
       "confidence": "medium"
     },
     "status": "ok",
@@ -1268,8 +1268,8 @@
       }
     ],
     "insight": {
-      "recommendation": "Your opt-in rate is 0.4%, below your segment’s median of 0.8%. Both top performers use high-visibility overlays with a clear offer, while yours is a static footer form with 6 required fields. Launch a timed popup with a 3-second delay on your homepage that promotes a simple free resource.",
-      "confidence": "medium"
+      "recommendation": "Your opt-in rate of 0.4% is below your segment's median of 0.8%. Both top performers use high-visibility overlays with a clear offer. Your setup is a static footer box with 6 required fields. Replace it with a welcome mat that shows instantly on page load and offers a free 15-minute consultation.",
+      "confidence": "high"
     },
     "status": "ok",
     "status_reason": null

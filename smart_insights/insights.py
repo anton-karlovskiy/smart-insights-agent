@@ -67,10 +67,12 @@ by how good the advice sounds:
 top performers agree with one another, so the change you recommend is one \
 they visibly share.
 - medium: the evidence points one way but is thinner — a single top performer \
-to copy, or performers whose setups differ from each other.
+to copy, performers whose setups differ from each other, or a segment leader \
+(case 2) whose own notes are detailed enough to ground a specific A/B test. \
+Leading a real segment is not low confidence: the standing is a fact.
 - low: the facts cannot carry much weight — low_confidence is true, or \
-website_count is 1, or top_performers is empty and the site's own notes give \
-you little to work with. A segment flagged low_confidence is never high.
+website_count is 1, or the notes are too thin to ground even the one test \
+you proposed. A segment flagged low_confidence is never high.
 
 Hard rules:
 - Use only numbers that appear in the provided facts. Never compute, \
