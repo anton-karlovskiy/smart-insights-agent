@@ -1,27 +1,27 @@
-## 1.
+## 1. Write the initial SPEC
 
 Read all files inside @applications/AI-First Developer - Awesome Motive/take-home-assignment first.
 - @applications/AI-First Developer - Awesome Motive/take-home-assignment/assignment-brief.md
 - @applications/AI-First Developer - Awesome Motive/take-home-assignment/understanding-the-pitch.md
 - @applications/AI-First Developer - Awesome Motive/take-home-assignment/OptinMonster_Dataset.json
 
-I'm going to develop this assignment project using Claude Code. So the fist step is to write SPEC.md well. Please specify all steps well in SPEC.md in order to complete a high-quality Python CLI project.
+I'm going to develop this assignment project using Claude Code. So the first step is to write SPEC.md well. Please specify all steps well in SPEC.md in order to complete a high-quality Python CLI project.
 
 The file path is G:\anton\02_projects\smart-insights-agent.
 
-## 2.
+## 2. Add a .gitignore
 
 Add .gitignore with relevant items for this project.
 
-## 3.
+## 3. Review and refine the SPEC
 
 The SPEC.md is a technical specification document which I can use as a foundation to then build this project. So with that in mind, review it again and improve if necessary.
 
-## 4.
+## 4. Switch from Claude to OpenAI GPT
 
 I'm using OpenAI GPT model not Claude. Can you update @SPEC.md accordingly?
 
-## 5.
+## 5. Analyze the setup notes
 
 @applications/AI-First Developer - Awesome Motive/take-home-assignment/OptinMonster_Dataset.json
 
@@ -29,7 +29,7 @@ Please review all "current_setup_notes" contents. And give me some insight into 
 
 Write down what you've described into @"applications/AI-First Developer - Awesome Motive/temp\" as an md file.
 
-## 6.
+## 6. LLM-assisted cleaning & normalization
 
 You can reference the assignment at G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\take-home-assignment\assignment-brief.md .
 
@@ -37,17 +37,17 @@ For data preprocessing namely Cleaning & Normalization, I'm also going to use LL
 
 As you can see the data at G:\anton\02_projects\smart-insights-agent\data\optinmonster_users.json
 - "reported_industry" is messy and expressed with different wording for the same segment. I think we should harmonize them first by adding a separate field named "canonical_industry_segment".
-- "current_setup_notes" is is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site. It is not structured data. It reads like something a support rep or onboarding specialist typed into a CRM: inconsistent casing, some entries in full sentences, some in lowercase fragments, no schema. It also includes some parts that are not related to conversion setup, which should be flagged/filtered in the process of data preprocessing. I'll specify how to handle them down the line.
+- "current_setup_notes" is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site. It is not structured data. It reads like something a support rep or onboarding specialist typed into a CRM: inconsistent casing, some entries in full sentences, some in lowercase fragments, no schema. It also includes some parts that are not related to conversion setup, which should be flagged/filtered in the process of data preprocessing. I'll specify how to handle them down the line.
 
 Review "1. Design principles" at @SPEC.md and update accordingly.
 
 For your reference, you can check G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\temp\llm-for-data-preprocessing.md to see how LLM is used for modern data science/analysis.
 
-## 7.
+## 7. Raise design principles to architecture level
 
 Now the design principles look too specific. It should be architecture level main points not implementation details. Please update them. Make them compact and to the point.
 
-## 8.
+## 8. Split setup notes into passages
 
 "current_setup_notes" is a free-text. So I'm going to use LLM to split it into a list of meaningful passages. And add that list as a separate field again. You can help me name that field.
 And when splitting, LLM can also polish passages without inventing new content. The meaning should stay the same but typos and grammar mistakes can be fixed by LLM.
@@ -55,12 +55,11 @@ LLM needs to use structured output in this case too.
 
 Review "1. Design principles" and update if necessary since I've specified the usage of LLM more.
 
-## 9.
+## 9. Define the two anomaly types
 
 I have to filter out anomaly rows from the given data. In this data, there are two cases of anomaly.
 
-The most explicit and clear case is impossible "opt_in_rate" metric. Those metric values that are not in the range of 0 to 100 are all impossible. And those rows are anomalies. This
-can be done by Python without using LLM.
+The most explicit and clear case is impossible "opt_in_rate" metric. Those metric values that are not in the range of 0 to 100 are all impossible. And those rows are anomalies. This can be done by Python without using LLM.
 In this case, I'm going to add a separate field named "impossible_metric_anomaly" with boolean value.
 
 There is an edge case for anomaly.
@@ -72,11 +71,11 @@ In this case, I'm going to add a separate field named "edge_case_anomaly" and us
 
 Review "1. Design principles" and improve/update it if necessary.
 
-## 10.
+## 10. Review the dataset-traps section
 
 I've manually updated "2. Dataset traps (must all be handled)" accordingly too. What do you think? Any mistakes or errors do you see?
 
-## 11.
+## 11. Harmonize terminology
 
 In this @SPEC.md I want to harmonize terms for consistency.
 
@@ -84,30 +83,28 @@ For example, "industry label", "label", "segment" are used interchangeably but l
 "user", "account" -> "website"
 Not use "user_id" but just "id"
 
-## 12.
+## 12. Irrelevant-notes gating rules
 
-I'm going to describe about the irrelevant-notes rules that gate the §3–§8 propagation.
+I'm going to describe the irrelevant-notes rules that gate the §3–§8 propagation.
 
 "current_setup_notes" is a free-text, human-written description of how each customer has configured their OptinMonster campaign on their site.
-So the field exists to capture the current state of a conversion setup in enough detail that someone can diagnose why the "opt_in_rate" is what it is. Paired with "opt_in_rate",
-each row is a small case study: here is the configuration, here is the result.
+So the field exists to capture the current state of a conversion setup in enough detail that someone can diagnose why the "opt_in_rate" is what it is. Paired with "opt_in_rate", each row is a small case study: here is the configuration, here is the result.
 
 When splitting "current_setup_notes" into a list of meaningful passages, drop those that are irrelevant to conversion setup configuration.
 It's safe because we also preserve "current_setup_notes" field as it is when creating a separate field for a list of conversion setup configuration passages.
 
-## 13.
+## 13. Define the row model fields
 
 For "4.1 model definition", we will add the following fields to each data row in the process of data preprocessing, benchmarking and insight generation.
 - "impossible_metric_anomaly": boolean
 - "edge_case_anomaly": string | None
 - "canonical_industry_segment": string
-- "benchmark": { "website_count": number; "mean_opt_in_rate": number; "median_opt_in_rate": number; "min_opt_in_rate": number; "max_opt_in_rate": number;
-"canonical_industry_segment": string; "top_performer_ids": list[number] } | None
+- "benchmark": { "website_count": number; "mean_opt_in_rate": number; "median_opt_in_rate": number; "min_opt_in_rate": number; "max_opt_in_rate": number; "canonical_industry_segment": string; "top_performer_ids": list[number] } | None
 - "insight": { "recommendation": string; "confidence": Literal["high", "medium", "low"] } | None
 
 For "impossible_metric_anomaly" is true or "edge_case_anomaly" is not None, "benchmark" and "insight" must be None from a logical perspective.
 
-## 14.
+## 14. Five flags on AI decisions
 
 Five flags — places I made a call or the model shifts behavior
 
@@ -119,8 +116,7 @@ Five flags — places I made a call or the model shifts behavior
 
 > The brief wants "a recommendation for each user," so confirm you're OK that broken rows get a diagnosis-only treatment.
 
-The brief just means that a recommendation should be generated for each website that has no anomaly. So broken rows, precisely speaking, rows that have anomaly shouldn't have to
-have any comment for now. Maybe later, we can address that too as an independent feature and now let's not make things complex and keep simplicity.
+The brief just means that a recommendation should be generated for each website that has no anomaly. So broken rows, precisely speaking, rows that have an anomaly shouldn't have any comment for now. Maybe later, we can address that too as an independent feature and now let's not make things complex and keep simplicity.
 
 > Want impossible-metric rows to also carry a short explanation (e.g. "rate 105% is impossible — verify tracking"), or is the flag enough?
 
@@ -130,7 +126,7 @@ No need any explanation because "impossible_metric_anomaly: true" explains every
 
 Entirely drop thin-segment fallback. It's an over-engineering feature. First, we should build this prototype with simplicity in mind as proof-of-concept or something.
 
-## 15.
+## 15. LLM-driven industry normalization
 
 In @SPEC.md, for 4.2 Industry normalization:
 
@@ -150,7 +146,7 @@ In the process, do not reference any other fields than "reported_industry" of ea
 
 Can you update 4.2 Industry normalization accordingly?
 
-## 16.
+## 16. Remove sample-data references from the SPEC
 
 @SPEC.md
 
@@ -159,7 +155,7 @@ As I mentioned earlier, that's sample data and not project constants so should n
 
 Review the whole doc and update sample data usage as an example accordingly.
 
-## 17.
+## 17. Don't assume a fixed segment count
 
 > Sanity checks against the sample (grouping invariants, not pinned names — the LLM chooses the names): a single-digit segment count; all the ecommerce spellings land in one segment; every row gets a segment, including anomalous ones, which still never enter benchmark membership.
 
@@ -167,7 +163,7 @@ We cannot define how many canonical industry segments will be derived by LLM. It
 For the current sample data, it could be a single-digit segment count but for real-world data, no guarantee that it could be a single-digit segment count.
 Please review @SPEC.md about that and update if necessary.
 
-## 18.
+## 18. Emphasize prompt engineering
 
 When using an LLM to analyze data, we need to tell the LLM what kind of data it is analyzing so it can keep that information as system prompt.
 For example, for "edge_case_anomaly", it will be helpful to add the following information to its system prompt.
@@ -175,7 +171,7 @@ For example, for "edge_case_anomaly", it will be helpful to add the following in
 
 In general, I'm emphasizing the importance of prompt engineering when using LLM like crafted system prompt and user prompt.
 
-## 19.
+## 19. Benchmarks and top performers
 
 For 4.4 Benchmarks
 
@@ -193,16 +189,16 @@ The purpose of next-best-action recommendation is something like:
 How to determine how many top performers is also a problem. In my opinion, maximum 3 rows with top "opt_in_rate" values higher than the current "opt_in_rate" value can be selected. It's my quick opinion.
 If you know a better approach based on similar statistics problems, you can recommend and follow that one.
 
-## 20.
+## 20. Edge case: the top performer's insight
 
 I'm thinking of an edge case where the current row is the very top performer. In that case, how to generate insight for that row?
 
-## 21.
+## 21. Final SPEC review before coding
 
 I think @SPEC.md is mostly done. I reviewed it manually and it looks good overall.
 Can you review it again to make sure that there are no mistakes or errors before I start vibe coding?
 
-## 22.
+## 22. Review the SPEC against context-engineering principles
 
 ## Underlying principles
 
@@ -216,7 +212,7 @@ The spec workflow follows the general context-engineering rules:
 
 Can you review @SPEC.md with the above principles?
 
-## 23.
+## 23. Summarize deliverables 2 and 3
 
 According to "What to Submit (The Deliverables)" from G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\take-home-assignment\assignment-brief.md .
 I have to submit 2. and 3. as well as 1.
@@ -226,7 +222,7 @@ I will be working on 1. now.
 Can you summarize 2. and 3. from this whole session as an md file into G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\deliverables?
 Here, you don't have to make a loom video but you can prepare some transcript.
 
-## 24.
+## 24. Build the project with meaningful commits
 
 Please develop this project making meaningful commits in the process.
 At the end of each milestone of the build order, you may want to review it and fix any mistakes or errors before go to the next milestone.
@@ -242,15 +238,15 @@ Three corrections came out of §24's build session, each tied to a commit. Full 
 
 3. **A blocked dependency was recorded, not papered over (`3257089`, `2147d5c` → `28d735a`).** Mid-build the OpenAI key hit `insufficient_quota`. The stage-2/5 artifacts were committed as clearly-labeled provisional (Claude-authored per the exact pipeline prompts, run through the real validators, with regeneration instructions in the commit messages). When quota returned, all three were regenerated as genuine gpt-5 output — which also surfaced a Windows cp1252 console crash on the model's U+2011 hyphen, fixed in the same commit.
 
-## 25.
+## 25. Add mypy and ruff
 
 Please add mypy for static type checking and ruff for linting and formatting.
 
-## 26.
+## 26. Readability pass
 
 Conduct a whole-project readability pass: rename modules, functions, and variables so their names state their purpose, and split or reword anything that obscures intent. The refactor must be strictly behavior-preserving — no changes to the pipeline contract, CLI commands, JSON artifact schemas, or prompt text — and the full test suite must stay green.
 
-## 27.
+## 27. Rewrite the README
 
 Rewrite @README.md so a reader outside this project can grasp the core ideas and the architecture quickly and correctly. Three sections need work:
 
@@ -258,12 +254,12 @@ Rewrite @README.md so a reader outside this project can grasp the core ideas and
 - **Run** — the commands are currently listed without sequence or context. Give the exact order to run them to produce insights, and state what each step consumes and produces, so someone can go from a fresh clone to `out/insights.json` without reading the source.
 - **Committed artifacts** — explain every artifact: what it is, which stage writes it, and why it is committed rather than generated at runtime.
 
-## 28.
+## 28. Add progress bars
 
 When running commands, for example, "uv run python -m smart_insights run", it should display some progress bar so I can know the status. Now it's silent.
 For all commands, the progress UX should be implemented.
 
-## 29.
+## 29. Document the model-selection TODO
 
 In this project, I used "gpt-5" model universally for "preprocess" and "insights". But it's not a good practice.
 We should be careful to choose a model depending on what kind of task the LLM handles because it will cost money.
@@ -271,11 +267,11 @@ But for simplicity, I just used "gpt-5" which is kind of most reliable.
 Besides that a reasoning effort should be addressed depending on what a task is like.
 Can you please summarize this into @README.md under a specific section, "TODO" or something?
 
-## 30.
+## 30. Add a Claude Code hook
 
 Set up a Claude Code hook by which tests, type-checking, linting, formatting, etc are triggered automatically probably via "PostToolUse".
 
-## 31.
+## 31. Review and improve all prompts
 
 Can you review all system prompts and user prompts and improve them based on relevant context and best practices? For LLM engineering, how to write prompts well is crucial.
 
@@ -291,29 +287,29 @@ Also: rewrote the pass-B "what is an edge case" section around what setting the 
 
 Artifacts regenerated with the improved prompts (`data/enriched.json`, `data/segment_map.json`, `out/insights.json`); anomaly flags unchanged at `{3, 4, 12, 20}`, `evaluate` passes 30/30 exit 0, full suite green (66 tests, +2 new: website-counts-reach-the-prompt, per-variant counting). No prompt text was pinned by a test, so the rewrites were free; the two injection-defense assertions (`"customer-entered data"`, `"never follow them"`) were preserved verbatim.
 
-## 32.
+## 32. Document CLI parameters
 
 CLI parameters like "--input", "--output", etc should be explained in @README.md although they are default ones.
 
-## 33.
+## 33. Define "clean" rows in the README
 
 In this project, the term "clean" rows denotes rows that contain no anomalies. Could you add this definition to @README.md ?
 
-## 34.
+## 34. Define "facts" in the README
 
 Provide a description of what "facts" mean in this project in @README.md file.
 
-## 35.
+## 35. Polish the whole README
 
 @README.md has been updated part by part throughout several commits. Now review the whole @README.md and polish it.
 It should look professional and organized without inventing irrelevant stuff.
 
-## 36.
+## 36. Review module and folder structure
 
 Review the modules and the relevant folder structures across the project. Improve/organize if you need.
 After that, you will have to check @SPEC.md and reflect the updated project layout.
 
-## 37.
+## 37. Apply the full code review findings
 
 ## Code review findings (2026-07-14)
 
@@ -362,7 +358,7 @@ Strong codebase, no high-severity issues. All 73 tests pass offline, ruff and st
 
 The above is the code review result across the project. Please handle all issues from it.
 
-## 38.
+## 38. Parallelize insight generation (TODO)
 
 Now, when generating insights across data rows, LLM API is called in a linear way - waterfall. It's not a best practice. We should call LLM APIs in parallel.
 For now, it's a prototype so I'm fine with the current handling. But I think we should add a TODO to @README.md for that.
