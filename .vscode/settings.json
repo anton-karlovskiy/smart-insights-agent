@@ -15,6 +15,7 @@
         "mypy",
         "Optin",
         "optinmonster",
+        "overfits",
         "pycache",
         "pydantic",
         "pyproject",
@@ -26,6 +27,7 @@
         "unbenchmarkable",
         "unparseable",
         "venv",
+        "vibecoding",
         "virtualenv"
     ]
 }

@@ -1,0 +1,39 @@
+I built the architecture and workflow with AI based on the given assignment brief and the sample data, specifically using Claude Code driven by Opus 4.8 and Fable 5 models. But it did not make them as I expected at first. The problem is AI knows very well not only the project specs but also the data it needs to handle. So it produced an architecture that was very well fit for the sample data. It already knew edge cases and anomalies like impossible "opt_in_rate" metrics, disagreement between the fields of "opt_in_rate", "reported_industry", and "current_setup_notes". {{AI can take examples from the project context like @README.md and @SPEC.md}}
+
+You can take a look at the initial version of SPEC.md file, {{SPEC.md is a description of what you're building that is fed into AI: AI can help to describe it more intuitively}}, by going back through the git commit history. Then you can realize how wrong the architecture and workflow were at the beginning.
+With this architecture and workflow, AI could build a tool that overfits the sample data. In other words, the result would be perfect for the given sample data but when different data is given, the tool would produce wrong results.
+
+I think that's where a human's engineering eyes are necessary. I manually reviewed initially generated SPEC.md very thoroughly and refined/corrected them by prompting (steering AI) not editing manually. That's the first step in agentic engineering. With AI coding agents introduced, we, engineers, spend more time writing the technical specs and plans than just coding.
+
+I updated the SPEC.md by combining different models. In general, I use Opus 4.8 for everyday complex tasks, Fable 5 for hardest and longest-running tasks, haiku for fastest quick answers because it costs tokens that is money in AI world.
+
+Although 30-row data is given for this prototype, I designed and developed this tool with production level in mind so I can apply this tool for real-world data that could be million rows.
+For example, in this project, we need to group all websites into peer segments by industry, then for each segment compute the average opt-in rate and identify what the top performers have in common. The averaging and counting are ordinary data work: no AI, just grouping and arithmetic.
+
+But the grouping itself turned out to need a scoped LLM, and this is where the build diverged from the plan. I had pitched layer 1 as pure data work with no AI. In practice the industry labels are messy free text ("eCommerce", "E-comm", "Retail / Ecom", "SaaS"), and no fixed lookup table can merge wordings it has never seen. And there could be millions of data rows and it would be impossible to create a lookup table in that case. So one LLM call derives the segment set from the data's own industry values, deterministic code validates and applies it, and the result is committed to disk so every later run reads the exact same segments. The LLM only decides which labels mean the same industry. It never touches the numbers. So the honest picture is that AI appears in both layers: cleaning the inputs in layer 1, and wording the recommendation in layer 2. Deterministic code still owns every statistic.
+
+Traditional cleaning (regex, string ops) can only get you so far. The interesting part is that an LLM is used as a data normalization engine sitting upstream in the pipeline — turning messy, heterogeneous scraped marketing copy into uniform, information-dense records. The general principle is like so: cheap and deterministic first, LLM second, never spend a token on a row you'd have dropped.
+
+A huge number of synchronous API calls is the wrong shape. Instead, use the provider's batch API — you trade latency (a 24-hour completion window) for a substantial discount. In this project, I did not use batch API since the data consists of just 30 rows but considering real-world data case where there could be millions of data rows, I mentioned that batch API use case in README.md.
+
+In terms of some edge cases I've encountered in the process of developing this tool, there are three edge cases I've found. There could be more depending on from what angle I look at this project.
+One is when "reported_industry", "opt_in_rate", and "current_setup_notes" disagree. For example, rate 0.0 with 15k visitors; a rate with no email field to opt into; industry label contradicting the notes — detectable only by reading prose, so LLM, with the explanation recorded as "edge_case_anomaly" field's value.
+Another one is when there's thin-segment case. {{AI can explain what "thin-segment" means in the project context and how to handle in this project}}
+The last one is when a target row is the top performer. Then how to generate insights for this row. {{AI can explain how I handled it in this project}}
+
+In terms of the git commits for this project:
+From "82e3dbf" to "a5142c0": Claude Code setup -> .claude directory contents and .mcp.json
+From "d3641fc" to "b85a70c": SPEC.md write-up and tuning
+From "88b4df4": building and polishing
+
+To be honest, I guess it took a bit more time for me to complete this project than expected. I could have built a quick version without considering production standards and potential scalability. But I think it's more important to do it right than quick, and wanted to show you that I'm kind of a detailed software developer with production mindset throughout the development of this project.
+
+Professionally speaking, I should have developed this tool after I'd dived deep into OptinMonster's operations first. But as the given data is small and compact enough and the project description was clear, I proceeded with this project based on them.
+
+When it comes to how I develop in the current AI era, I do not start vibecoding right after I receive project specs and requirements. I do research a lot like paperwork on the given project first by checking its specs and requirements in detail. And on top of that, I make a decision on the direction of the project. Yes, architecture and workflow goes before vibecoding.
+After every vibecoding session, I manually review and evaluate generated code, and refine/craft them again because it could hallucinate facts, make logical errors, introduce security vulnerabilities, and often produce output that wouldn't pass a basic code review, let alone be suitable for production. So, for AI-generated code, I try to understand syntax, recognize potential bugs, identify performance bottlenecks, and ensure adherence to coding standards.
+
+These days, AI replaces much of human's work including software engineering. AI tools can spit out code faster than most humans, tackle repetitive tasks with ease, and even suggest solutions to tricky problems. But they don't understand the why behind your project; they just execute instructions. Essentially, AI coding assistants amplify your existing abilities. They're powerful force multipliers, not replacements for fundamental knowledge. They excel at automating tedious work, but they don't replace the need for critical thinking and design expertise.
+
+My main coding agent is Claude Code but I do not use it randomly. I learned tips and tricks of how to leverage Claude Code effectively from [Claude Code - The Practical Guide](https://github.com/anton-karlovskiy/anton-karlovskiy/blob/main/certificates/Udemy%20certificates/UC-49fa0206-f1c4-46a3-ae59-281af386ed26%20(Claude%20Code%20-%20The%20Practical%20Guide).pdf) and applied best practices I gained to this project too.
+So I do not do vibecoding but agentic engineering. {{AI adds a picture from "docs\deliverables\misc\Vibecoding vs Agentic Engineering.png"}}
