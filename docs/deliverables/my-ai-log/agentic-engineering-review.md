@@ -17,7 +17,7 @@ Measured directly from the Claude Code session transcripts on disk (`~/.claude/p
 | Models collaborated with | **Claude Opus 4.8** — 2,572 assistant turns (primary build/spec); **Claude Fable 5** — 548 turns (the code-review pass, §37) |
 | Prompt length | median **66 chars**, max 4,737; **119 of 232 (51%)** are sub-80-char one-liners |
 
-Two things follow immediately. First, **`PROMPTS.md` (the 38-prompt writeup this review's qualitative analysis leans on) is a ~16% curated distillation** — the load-bearing decisions lifted out of 232 raw prompts. Second, **the real texture was many small steering turns, not a few giant ones**: the median prompt is one line, and half the corpus is one-liners. The 38 curated prompts are the skeleton; the other ~194 are the muscle that moved it — commit cadence, verification loops, and micro-corrections (see §7).
+Two things follow immediately. First, **[`PROMPTS.md`](../../../PROMPTS.md) (the 38-prompt writeup this review's qualitative analysis leans on) is a ~16% curated distillation** — the load-bearing decisions lifted out of 232 raw prompts. Second, **the real texture was many small steering turns, not a few giant ones**: the median prompt is one line, and half the corpus is one-liners. The 38 curated prompts are the skeleton; the other ~194 are the muscle that moved it — commit cadence, verification loops, and micro-corrections (see §7).
 
 ---
 
