@@ -362,3 +362,16 @@ The above is the code review result across the project. Please handle all issues
 
 Now, when generating insights across data rows, LLM API is called in a linear way - waterfall. It's not a best practice. We should call LLM APIs in parallel.
 For now, it's a prototype so I'm fine with the current handling. But I think we should add a TODO to @README.md for that.
+
+## 39.
+
+I built the project using Claude Code, applying agentic engineering to guide the coding agent with prompts.
+There was almost no manual coding involved.
+I plan to review my agentic engineering work by gathering all prompts and their answers produced throughout the development.
+Could you extract and structure this information for a senior‑level report?
+
+Create an md file at G:\anton\02_projects\cyber-galaxy\applications\AI-First Developer - Awesome Motive\progress.
+
+The review must be thorough.
+It must cover every Claude Code session that contributed to this project's development.
+The report describes how I steered Claude Code (coding agent) to develop this project.
