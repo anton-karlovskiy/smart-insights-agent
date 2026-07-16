@@ -1,0 +1,212 @@
+[
+  {
+    "id": 1,
+    "website_url": "https://www.luxe-threads.co",
+    "reported_industry": "eCommerce",
+    "opt_in_rate": 2.4,
+    "current_setup_notes": "Runs a sitewide overlay popup on 5s delay, no exit intent, template #4. Offers 10% off."
+  },
+  {
+    "id": 2,
+    "website_url": "https://SaaSmetrics-hub.io",
+    "reported_industry": "Software / B2B",
+    "opt_in_rate": 1.1,
+    "current_setup_notes": "using a sidebar widget on blog posts only. asset: download free ebook. no triggers, just static."
+  },
+  {
+    "id": 3,
+    "website_url": "https://www.bobsbakingworld.com",
+    "reported_industry": "SaaS",
+    "opt_in_rate": 3.8,
+    "current_setup_notes": "Selling premium baking sheets and silicone molds. Exit intent coupon code popup active on checkout page."
+  },
+  {
+    "id": 4,
+    "website_url": "https://fitlife-academy.net",
+    "reported_industry": "Fitness & Health",
+    "opt_in_rate": 0.0,
+    "current_setup_notes": "Script installed via manual header injection. 0 impressions recorded this month despite 15k unique visitors. Generic newsletter signup slide-in."
+  },
+  {
+    "id": 5,
+    "website_url": "https://www.quicktech-reviews.com",
+    "reported_industry": "Media / Blog",
+    "opt_in_rate": 5.2,
+    "current_setup_notes": "Scroll trigger 50% on tech news articles. Lightbox popup offering weekly digest. Template modified heavily with custom CSS."
+  },
+  {
+    "id": 6,
+    "website_url": "https://apex-legal-consulting.com",
+    "reported_industry": "Professional Services",
+    "opt_in_rate": 0.8,
+    "current_setup_notes": "Standard welcome mat covering whole page instantly on load. Free 15 min consultation offer. High bounce rate reported on GA4."
+  },
+  {
+    "id": 7,
+    "website_url": "https://www.cozycoffee-roasters.com",
+    "reported_industry": "ecommerce",
+    "opt_in_rate": 4.1,
+    "current_setup_notes": "Exit intent on cart page only. 15% discount code. Very high conversion but low overall volume."
+  },
+  {
+    "id": 8,
+    "website_url": "https://cloudsync-erp.com",
+    "reported_industry": "B2B Software",
+    "opt_in_rate": 105.0,
+    "current_setup_notes": "Enterprise demo request form. Full screen takeover triggered immediately on homepage. Testing multi-step form fields."
+  },
+  {
+    "id": 9,
+    "website_url": "https://Wanderlust-travel-blog.com",
+    "reported_industry": "Travel / Lifestyle",
+    "opt_in_rate": 1.9,
+    "current_setup_notes": "inline form at the bottom of long-form articles. subscribing to travel tips newsletter."
+  },
+  {
+    "id": 10,
+    "website_url": "https://www.petparadise-shop.com",
+    "reported_industry": "Retail",
+    "opt_in_rate": 2.9,
+    "current_setup_notes": "Sitewide popup on 10s delay. Cookie duration set to 365 days. Asking for email and phone number on step 1."
+  },
+  {
+    "id": 11,
+    "website_url": "https://learncodingtoday.edu",
+    "reported_industry": "Education",
+    "opt_in_rate": 6.4,
+    "current_setup_notes": "2-step choice campaign on course catalog page. 'Are you a beginner or pro?' clicks trigger custom targeted lead forms."
+  },
+  {
+    "id": 12,
+    "website_url": "https://www.greenvalley-organic.com",
+    "reported_industry": "E-comm",
+    "opt_in_rate": 0.02,
+    "current_setup_notes": "Floating bar at the top of the page with a countdown timer for free shipping. No email input field, just a button linking to shop page."
+  },
+  {
+    "id": 13,
+    "website_url": "https://solarpower-installers.net",
+    "reported_industry": "Home Services",
+    "opt_in_rate": 1.5,
+    "current_setup_notes": "Slide-in box on bottom right triggering after 30 seconds on site. Quote request form."
+  },
+  {
+    "id": 14,
+    "website_url": "https://Thecrypto-daily.io",
+    "reported_industry": "Finance",
+    "opt_in_rate": 3.1,
+    "current_setup_notes": "Timed popup (3s) on homepage only. Offering 'Top 5 Crypto Picks' PDF. No mobile optimization enabled."
+  },
+  {
+    "id": 15,
+    "website_url": "https://www.boutique-vibe.fr",
+    "reported_industry": "E-commerce",
+    "opt_in_rate": 2.2,
+    "current_setup_notes": "Overlay popup on 5s delay, no exit intent, template #4. Written entirely in French, targeting EU users."
+  },
+  {
+    "id": 16,
+    "website_url": "https://saas-hr-pro.com",
+    "reported_industry": "Software",
+    "opt_in_rate": 0.5,
+    "current_setup_notes": "Welcome mat on landing page. Text says: 'Join our weekly HR newsletter.' Form asks for Company Name, Employee Count, Job Title, and Email."
+  },
+  {
+    "id": 17,
+    "website_url": "https://www.urban-gardening-hub.com",
+    "reported_industry": "Blog / Affiliate",
+    "opt_in_rate": 4.8,
+    "current_setup_notes": "Exit intent popup on all organic search landing pages. Free seed-planting calendar download."
+  },
+  {
+    "id": 18,
+    "website_url": "https://dentalcare-group.com",
+    "reported_industry": "Medical / Local Business",
+    "opt_in_rate": 1.2,
+    "current_setup_notes": "Floating bar at bottom of mobile view. 'Call Now for Appointment' button. Also contains an email field."
+  },
+  {
+    "id": 19,
+    "website_url": "https://www.vintage-vinyls.com",
+    "reported_industry": "E-commerce",
+    "opt_in_rate": 3.5,
+    "current_setup_notes": "MonsterLink trigger setup. Users must click the 'Unlock Secret Stash' text link to trigger the lightbox popup."
+  },
+  {
+    "id": 20,
+    "website_url": "https://marketing-mastery-consults.com",
+    "reported_industry": "Agency",
+    "opt_in_rate": -0.5,
+    "current_setup_notes": "Sidebar contact widget on desktop. Form submission drops lead into a dead Webhook URL. Needs review."
+  },
+  {
+    "id": 21,
+    "website_url": "https://www.kidz-clothing.com",
+    "reported_industry": "Retail / Ecom",
+    "opt_in_rate": 1.8,
+    "current_setup_notes": "Sitewide popup on 2s delay. Standard 'Join our mailing list for news.' No coupon or lead magnet offered."
+  },
+  {
+    "id": 22,
+    "website_url": "https://subscribestar-creators.net",
+    "reported_industry": "Entertainment",
+    "opt_in_rate": 8.7,
+    "current_setup_notes": "Exit intent popup showing a funny meme targeting returning visitors only. Highly specific audience segment."
+  },
+  {
+    "id": 23,
+    "website_url": "https://www.zenspace-yoga.com",
+    "reported_industry": "Local Business",
+    "opt_in_rate": 4.3,
+    "current_setup_notes": "Slide-in box after 60% page scroll on the schedule page. Offers a free first class pass."
+  },
+  {
+    "id": 24,
+    "website_url": "https://fintech-secure-api.io",
+    "reported_industry": "SaaS / Tech",
+    "opt_in_rate": 0.9,
+    "current_setup_notes": "Inline whitepaper download form on technical documentation pages. Asks for business email. CAPTCHA enabled."
+  },
+  {
+    "id": 25,
+    "website_url": "https://www.gourmet-meal-kits.com",
+    "reported_industry": "E-commerce",
+    "opt_in_rate": 2.7,
+    "current_setup_notes": "Spin-to-win gamified wheel popup triggered after 15 seconds on site. Offering various coupon prizes (5% to 25% off)."
+  },
+  {
+    "id": 26,
+    "website_url": "https://realestate-pros-agents.com",
+    "reported_industry": "Property",
+    "opt_in_rate": 1.4,
+    "current_setup_notes": "Full screen welcome mat on homepage. Form fields: Name, Phone, Email, Desired Budget, Timeline to buy."
+  },
+  {
+    "id": 27,
+    "website_url": "https://www.thetrendystore.com",
+    "reported_industry": "Ecommerce",
+    "opt_in_rate": 3.0,
+    "current_setup_notes": "Overlay popup on 5s delay, no exit intent, template #4. Duplicate setup of ID #1 but different domain."
+  },
+  {
+    "id": 28,
+    "website_url": "https://SaaS-flow-analytics.com",
+    "reported_industry": "Software",
+    "opt_in_rate": 2.1,
+    "current_setup_notes": "Timed slide-in (7s) offering a free 14-day trial. Direct input field for email only."
+  },
+  {
+    "id": 29,
+    "website_url": "https://www.handcrafted-leather.it",
+    "reported_industry": "E-commerce",
+    "opt_in_rate": 1.6,
+    "current_setup_notes": "Exit intent lightbox on product pages. Offering a free leather care guide PDF instead of a discount code."
+  },
+  {
+    "id": 30,
+    "website_url": "https://security-compliance-audit.org",
+    "reported_industry": "B2B Services",
+    "opt_in_rate": 0.4,
+    "current_setup_notes": "Static inline box embedded inside the footer of the page. High friction form with 6 required input fields."
+  }
+]
