@@ -200,7 +200,7 @@ Can you review it again to make sure that there are no mistakes or errors before
 
 ## 22. Review the SPEC against context-engineering principles
 
-## Underlying principles
+### Underlying principles
 
 The spec workflow follows the general context-engineering rules:
 
@@ -311,16 +311,16 @@ After that, you will have to check @SPEC.md and reflect the updated project layo
 
 ## 37. Apply the full code review findings
 
-## Code review findings (2026-07-14)
+### Code review findings (2026-07-14)
 
 Full-codebase general review of `smart-insights-agent` by Claude Code (Fable 5).
 Status: findings recorded, **not yet addressed** — fixes to be applied later.
 
-### Verdict
+#### Verdict
 
 Strong codebase, no high-severity issues. All 73 tests pass offline, ruff and strict mypy clean, `evaluate` passes 30/30 on `out/insights.json`. The two core invariants (anomalous rows never benchmarked/insighted; normalization reads `reported_industry` alone) hold everywhere. The four bugs below are robustness gaps against hostile-but-plausible real input, invisible on the committed sample.
 
-### Bugs (low severity, real)
+#### Bugs (low severity, real)
 
 1. **NaN opt-in rate passes the audit and poisons segment benchmarks** — `audit.py:16`, `models.py:26`. Pydantic v2 `validate_json` accepts `NaN` for floats by default; `rate < 0 or rate > 100` is false for NaN, so a NaN row counts as clean and `statistics.fmean` turns every stat in its segment into NaN. `Infinity` is caught, NaN is not.
    Fix: `Field(allow_inf_nan=False)` on `RawRow.opt_in_rate`, or write the audit as `not (0 <= rate <= 100)` (NaN-safe).
@@ -334,13 +334,13 @@ Strong codebase, no high-severity issues. All 73 tests pass offline, ruff and st
 4. **Duplicate row ids never rejected** — `models.py:165`. Ids key several downstream dicts (`apply_segment_map`, `build_insight_facts`'s `row_by_id`, evaluate); a duplicated id silently merges rows instead of failing loudly at stage 1.
    Fix: uniqueness check in `load_raw_rows` / `load_enriched_rows`.
 
-### Spec/code drift (surface, don't silently "fix" either side)
+#### Spec/code drift (surface, don't silently "fix" either side)
 
 5. CLAUDE.md says "60 tests"; the suite has 73 (README already corrected in commit 549475e, CLAUDE.md Status section wasn't).
 6. Output rows carry a `status_reason` field (`__main__.py:155`) not in SPEC §4.7's schema list. Useful, but undocumented; `evaluate` ignores it.
 7. Pass-A worst case is 4 API calls, not 2 (`preprocess.py:164` + `:221`): `_parse_with_retry`'s parse retry nests inside `derive_segment_map`'s validation retry. Defensible (different failure classes) but SPEC §4.2 reads "retry once, fail loudly after that" and the nesting is unnoted.
 
-### Suggested improvements
+#### Suggested improvements
 
 8. **Move the "low_confidence segment is never high confidence" rule from prompt to validator** (`validate.py:55`). Mechanically checkable (`facts["benchmark"]["low_confidence"] and confidence == "high"`), fits the "deterministic code owns every decision a rule can make" ethos, and `evaluate` would then re-check it for free.
 9. `run --id N` overwrites `out/insights.json` with a one-row file; a bare `evaluate` afterwards silently checks only that row (`__main__.py:159`). Warn in README or skip the write for `--id`.
@@ -348,7 +348,7 @@ Strong codebase, no high-severity issues. All 73 tests pass offline, ruff and st
 11. `evaluate_entries` (`validate.py:107`) is used only by tests; the CLI loops `evaluate_entry` itself for progress.
 12. Nits: insight prompt says "under 500 characters" vs validator's 600 cap (sensible headroom, undocumented); `build_insight_facts` rebuilds `row_by_id` per call (O(n²), irrelevant at 30 rows); `print_run_summary` prints a needs_review row's kept invalid recommendation with no inline marker.
 
-### Notably good
+#### Notably good
 
 - Anomaly-gate invariant enforced at three independent layers (compute, facts-build raises, evaluate re-checks).
 - Prompt-injection framing ("data, never instructions") applied at both LLM call sites and asserted in tests.

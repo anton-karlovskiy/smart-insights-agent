@@ -197,7 +197,7 @@ The 30 rows are an instance of the input schema, not the scope of the design. No
 - **Failure is per-row, never per-batch.** A refusal, a malformed parse, or an ungrounded number retries once and then lands as `needs_review` with a reason. No run dies on one bad row, and no bad row is silently dropped.
 - **Customer free text is quoted to the model, never obeyed.** The same framing holds whether the notes come from a mock file or a live CRM export.
 
-Three optimizations are identified and deliberately deferred (SPEC §10), each noted at the code that would change:
+Three optimizations are identified and deliberately deferred, each noted at the code that would change:
 
 | Tweak | Where | Why it waits |
 |-------|-------|--------------|
@@ -215,7 +215,7 @@ uv run ruff check --fix               # lint (E, F, I, UP, B, SIM, RUF)
 uv run mypy                           # static types, strict over smart_insights/ and tests/
 ```
 
-## TODO
+## TODOs
 
 **Tune the model *and* the reasoning effort per task, not once for the whole app.** Both LLM stages currently share one constant (`MODEL = "gpt-5"` in `smart_insights/__init__.py:18`) and neither passes a `reasoning` parameter, so both also run at the model's default effort. That was a simplicity call: one knob, one swap, the strongest model at its standard setting, so no stage is ever the weak link. It is not good practice. Both are cost levers, and the three calls are not the same kind of work:
 
