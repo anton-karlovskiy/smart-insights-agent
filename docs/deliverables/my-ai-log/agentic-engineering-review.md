@@ -2,9 +2,7 @@
 
 A thorough, senior-level read of how this project was built: **almost no hand-written code, the whole thing steered through prompts to a coding agent (Claude Code).** This document evaluates the *method* — including its gaps — across every session consumed, not just the highlights.
 
-Written 2026-07-15.
-
-> **Abstract.** This is a review of *how I steered a coding agent* to build `smart-insights-agent` — not a description of what the app does. Across 232 prompts in 92 Claude Code sessions over seven days, I owned the architecture, the invariants, and the corrections; the agent (Claude Opus 4.8, with Claude Fable 5 for one review pass) did the typing. The evidence for real engineering, rather than passive generation, is concentrated in two places: the design decisions front-loaded into a spec written before any code (§2–§3), and the points where I overrode the agent — catching and correcting its own green-tested output (§5) inside a tight loop of small instructions and constant verification (§7). The claim is *direction*, not authorship: I did not write the code, but I engineered every decision that shaped it.
+> **Abstract.** This is a review of *how I steered a coding agent* to build `smart-insights-agent` — not a description of what the app does. Across 232 prompts in 92 Claude Code sessions, I owned the architecture, the invariants, and the corrections; the agent (Claude Opus 4.8, with Claude Fable 5 for one review pass) did the typing. The evidence for real engineering, rather than passive generation, is concentrated in two places: the design decisions front-loaded into a spec written before any code (§2–§3), and the points where I overrode the agent — catching and correcting its own green-tested output (§5) inside a tight loop of small instructions and constant verification (§7). The claim is *direction*, not authorship: I did not write the code, but I engineered every decision that shaped it.
 
 ---
 
@@ -16,8 +14,6 @@ Measured directly from the Claude Code session transcripts on disk (`~/.claude/p
 |---|---|
 | Sessions (`.jsonl` transcripts) | **115** total; 92 contained ≥1 typed prompt |
 | Typed human prompts | **232** |
-| Calendar span | **2026-07-09 → 07-15** (7 days) |
-| Busiest days | 07-15 (67), 07-10 (42), 07-13 (41), 07-11 (40) |
 | Models collaborated with | **Claude Opus 4.8** — 2,572 assistant turns (primary build/spec); **Claude Fable 5** — 548 turns (the code-review pass, §37) |
 | Prompt length | median **66 chars**, max 4,737; **119 of 232 (51%)** are sub-80-char one-liners |
 
