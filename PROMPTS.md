@@ -363,7 +363,7 @@ The above is the code review result across the project. Please handle all issues
 Now, when generating insights across data rows, LLM API is called in a linear way - waterfall. It's not a best practice. We should call LLM APIs in parallel.
 For now, it's a prototype so I'm fine with the current handling. But I think we should add a TODO to @README.md for that.
 
-## 39.
+## Report on the agentic engineering process
 
 I built the project using Claude Code, applying agentic engineering to guide the coding agent with prompts.
 There was almost no manual coding involved.
