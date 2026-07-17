@@ -1,6 +1,6 @@
 # Solution Walkthrough — Loom Video
 
-A short async screen-share walking through the Smart Insights Agent. I recorded it in four parts so each topic stays focused and easy to skip back to — together they run about four and a half minutes.
+A short async screen-share walking through the Smart Insights Agent. I recorded it in four parts so each topic stays focused and easy to skip back to.
 
 Quick map of what each part covers:
 
