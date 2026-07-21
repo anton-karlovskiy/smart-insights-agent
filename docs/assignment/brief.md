@@ -17,9 +17,9 @@ To respect your time, this should take no more than 3 to 4 hours. Please provide
 1. **The Code:** Your functional Python script or micro-service.
 2. **PROMPTS.md (Your AI Log):** A simple markdown file documenting the prompts you used, which LLMs you collaborated with, and where you had to manually override the AI's code because it hallucinated or wrote something sub-optimal.
 3. **A 3-5 Minute Loom Video:** A relaxed, async screen-share video walking us through your solution. Don't worry about making the audio perfect. Just walk us through:
-  - Your architectural choices.
-  - How you handled data hygiene and edge cases.
-  - One specific place where the AI gave you bad code/logic and how you corrected it.
+    - Your architectural choices.
+    - How you handled data hygiene and edge cases.
+    - One specific place where the AI gave you bad code/logic and how you corrected it.
 
 ## The Dataset
 
